@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -7,29 +8,36 @@ namespace TheBlockTree
 	// no verification of block signatures nor chaining is done by the index
 	public class BlockIndex
 	{
-		private readonly Dictionary<Bytes, (Block Block, List<Block> Children)> parentBlockAndChildrenByParentSignature =
-			new Dictionary<Bytes, (Block parent, List<Block> children)>();
+		private readonly Dictionary<ReadOnlyMemory<Byte>, Block> blocksBySignature =
+			new Dictionary<ReadOnlyMemory<Byte>, Block>(ReadOnlyMemoryEqualityComparer<Byte>.Instance);
+		private readonly Dictionary<ReadOnlyMemory<Byte>, List<Block>> childBlocksByParentSignature =
+			new Dictionary<ReadOnlyMemory<Byte>, List<Block>>(ReadOnlyMemoryEqualityComparer<Byte>.Instance);
 
-		public Block? GetBySignature(Bytes signature) =>
-			parentBlockAndChildrenByParentSignature.GetValueOrDefault(signature).Block;
+		public Block? GetBySignature(ReadOnlyMemory<Byte> signature)
+		{
+			Console.WriteLine("a\t" + new Bytes(signature));
+			return blocksBySignature.GetValueOrDefault(signature);
+		}
 
 		public Block? GetParent(Block block) =>
 			GetBySignature(block.ParentSignature);
 
-		public List<Block>? GetChildren(Block block) =>
-			parentBlockAndChildrenByParentSignature.GetValueOrDefault(block.Signature).Children;
+		public IReadOnlyList<Block>? GetChildren(ReadOnlyMemory<Byte> signature) =>
+			childBlocksByParentSignature.GetValueOrDefault(signature);
+
+		public IReadOnlyList<Block>? GetChildren(Block block) =>
+			childBlocksByParentSignature.GetValueOrDefault(block.Signature);
 
 		public void Add(Block block)
 		{
-			if (parentBlockAndChildrenByParentSignature.TryGetValue(block.sign, out var values))
-				values.Add(valueToAdd);
+			blocksBySignature.Add(block.Signature, block);
+			if (childBlocksByParentSignature.TryGetValue(block.ParentSignature, out var children))
+				children.Add(block);
 			else
-				parentBlockAndChildrenByParentSignature.Add(key, new List<V> { valueToAdd });
-
-			//blocksBySignature.Add(block.Signature, block);
-			//parentBlockAndChildrenByParentSignature.GetOrAddToList(block.ParentSignature, block);
+				childBlocksByParentSignature.Add(block.ParentSignature, new List<Block> { block });
 		}
 
-		public List<Block> GetAllBlocks() => blocksBySignature.Values.ToList();
+		public List<Block> GetAllBlocks() =>
+			blocksBySignature.Values.ToList();
 	}
 }

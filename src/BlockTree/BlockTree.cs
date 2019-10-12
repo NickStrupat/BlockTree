@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NSec.Cryptography;
 
 namespace TheBlockTree
@@ -16,9 +17,10 @@ namespace TheBlockTree
 			var unverifiedBlockIndex = new BlockIndex();
 			foreach (var unverifiedBlock in unverifiedBlocks)
 				unverifiedBlockIndex.Add(unverifiedBlock);
-			if (!unverifiedBlockIndex.TryGetRootBlock(out var rootBlock))
+			var rootBlock = unverifiedBlockIndex.GetChildren(ReadOnlyMemory<Byte>.Empty).SingleOrDefault();
+			if (rootBlock == null)
 				throw new NoRootBlock();
-			VerifyChildrenDepthFirst(rootBlock!);
+			VerifyChildrenDepthFirst(rootBlock);
 			void VerifyChildrenDepthFirst(Block parent)
 			{
 				var children = unverifiedBlockIndex.GetChildren(parent);

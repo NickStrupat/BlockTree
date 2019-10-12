@@ -6,22 +6,22 @@ using Xunit;
 
 namespace TheBlockTree.BlockTreeTests
 {
-    public class UnitTest1
-    {
+	public class UnitTest1
+	{
 
-        [Fact]
-        public void TestBlockTree()
-        {
+		[Fact]
+		public void TestBlockTree()
+		{
 			var key = Key.Create(SignatureAlgorithm.Ed25519);
 			var blockTree = new BlockTree(Array.Empty<Byte>(), key);
 
-			Assert.Equal(Array.Empty<Byte>(), blockTree.Root.ParentSignature.Value);
-			Assert.NotEqual(Array.Empty<Byte>(), blockTree.Root.Signature.Value);
+			Assert.Equal(Array.Empty<Byte>(), blockTree.Root.ParentSignature);
+			Assert.NotEqual(Array.Empty<Byte>(), blockTree.Root.Signature);
 
 			Assert.True(blockTree.TryAdd(blockTree.Root, Encoding.UTF8.GetBytes("Hello"), key, out var newBlock));
-			Assert.Equal(blockTree.Root.Signature, newBlock!.ParentSignature);
-        }
-		
+			Assert.Equal(blockTree.Root.Signature, newBlock!.ParentSignature, ReadOnlyMemoryEqualityComparer<Byte>.Instance);
+		}
+
 		[Fact]
 		public void TestBlockIndex()
 		{
@@ -41,7 +41,13 @@ namespace TheBlockTree.BlockTreeTests
 				blockIndex.Add(verifiedBlock);
 			blockIndex.Add(blockTree.Root);
 
-			var blockTree2 = new BlockTree(blockIndex.GetAllBlocks());
+			List<Block> blocks = blockIndex.GetAllBlocks();
+			foreach (var block in blocks)
+			{
+				Console.WriteLine(new Bytes(block.ParentSignature));
+				Console.WriteLine("\t" + new Bytes(block.Signature));
+			}
+			var blockTree2 = new BlockTree(blocks);
 		}
 
 		[Fact]

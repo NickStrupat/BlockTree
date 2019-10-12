@@ -9,7 +9,7 @@ namespace TheBlockTree
 			if (dictionary.TryGetValue(key, out var values))
 				values.Children.Add(valueToAdd);
 			else
-				dictionary.Add(key, new List<V> { valueToAdd });
+				dictionary.Add(key, (valueToAdd, new List<V> { valueToAdd }));
 		}
 	}
 }

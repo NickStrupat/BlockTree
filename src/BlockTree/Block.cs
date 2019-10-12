@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using NSec.Cryptography;
@@ -46,14 +47,14 @@ namespace TheBlockTree
 		public Boolean VerifyChild(Block child)
 		{
 			// simple check if signatures match
-			if (Signature.Span.SequenceEqual(child.ParentSignature.Span))
+			if (!Signature.Span.SequenceEqual(child.ParentSignature.Span))
 				return false;
 
 			// actual data integrity check that the signature of (parent signature + data) results in the child's signature
 			var publicKey = NSec.Cryptography.PublicKey.Import(Algorithm, child.PublicKey.Span, PublicKeyBlobFormat);
 			Span<Byte> data = stackalloc Byte[child.ParentSignature.Length + child.Data.Length];
 			child.ParentSignature.Span.CopyTo(data);
-			child.Data.Span.CopyTo(data.Slice(ParentSignature.Length));
+			child.Data.Span.CopyTo(data.Slice(child.ParentSignature.Length));
 			return Algorithm.Verify(publicKey, data, child.Signature.Span);
 		}
 
@@ -74,11 +75,11 @@ namespace TheBlockTree
 			Span<Byte> destination = bytes;
 			ParentSignature.Span.Serialize(destination);
 			destination = destination.Slice(parentSignatureSerializationSize);
-			ParentSignature.Span.Serialize(bytes);
+			ParentSignature.Span.Serialize(destination);
 			destination = destination.Slice(dataSerializationSize);
-			ParentSignature.Span.Serialize(bytes);
+			ParentSignature.Span.Serialize(destination);
 			destination = destination.Slice(signatureSerializationSize);
-			ParentSignature.Span.Serialize(bytes);
+			ParentSignature.Span.Serialize(destination);
 			return bytes;
 		}
 
@@ -119,10 +120,10 @@ namespace TheBlockTree
 
 		internal class BlockDebugView
 		{
-			public readonly String ParentSignature;
-			public readonly String Data;
-			public readonly String Signature;
-			public readonly String PublicKey;
+			public String ParentSignature { get; }
+			public String Data { get; }
+			public String Signature { get; }
+			public String PublicKey { get; }
 
 			public BlockDebugView(Block block)
 			{

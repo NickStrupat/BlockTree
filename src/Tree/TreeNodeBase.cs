@@ -51,30 +51,30 @@ namespace Tree
 				Children[i].PrintInternal(textWriter, indent, i == Children.Count - 1);
 		}
 
-		public IEnumerable<(TreeNodeBase<T> Node, UInt32 Level)> TraverseDescendantsDepthFirst()
+		public IEnumerable<(TreeNodeBase<T> Value, UInt32 Level)> TraverseDescendantsDepthFirst()
 		{
-			var stack = new Stack<(TreeNodeBase<T> Node, UInt32 Level)>();
+			var stack = new Stack<(TreeNodeBase<T> Value, UInt32 Level)>();
 			foreach (var child in this.Children.Reverse())
 				stack.Push((child, 0u));
 			while (stack.Count != 0)
 			{
 				var next = stack.Pop();
 				yield return next;
-				foreach (var child in next.Node.Children.Reverse())
+				foreach (var child in next.Value.Children.Reverse())
 					stack.Push((child, next.Level + 1));
 			}
 		}
 
-		public IEnumerable<(TreeNodeBase<T> Node, UInt32 Level)> TraverseDescendantsBreadthFirst()
+		public IEnumerable<(TreeNodeBase<T> Value, UInt32 Level)> TraverseDescendantsBreadthFirst()
 		{
-			var queue = new Queue<(TreeNodeBase<T> Node, UInt32 Level)>();
+			var queue = new Queue<(TreeNodeBase<T> Value, UInt32 Level)>();
 			foreach (var child in this.Children)
 				queue.Enqueue((child, 0u));
 			while (queue.Count != 0)
 			{
 				var next = queue.Dequeue();
 				yield return next;
-				foreach (var child in next.Node.Children)
+				foreach (var child in next.Value.Children)
 					queue.Enqueue((child, next.Level + 1));
 			}
 		}

@@ -22,11 +22,20 @@ namespace Tree.Testing
 			
 			var nodesDepthFirst = tree.TraverseDepthFirst().ToList();
 			foreach (var node in nodesDepthFirst)
-				Console.WriteLine(new String(' ', (Int32)node.Level * 2) + node.Node);
-				
+				Console.WriteLine(new String(' ', (Int32)node.Level * 2) + node.Value);
+
 			var nodesBreadthFirst = tree.TraverseBreadthFirst().ToList();
+			var level = -1u;
 			foreach (var node in nodesBreadthFirst)
-				Console.WriteLine(new String(' ', (Int32)node.Level * 2) + node.Node);
+			{
+				if (level != node.Level)
+				{
+					level = node.Level;
+					Console.WriteLine();
+				}
+				Console.Write(node.Value + "  ");
+			}
+			Console.WriteLine();
 		}
 	}
 }

@@ -18,9 +18,15 @@ namespace Tree.Testing
 			var e0 = c1.AddChildNode("E0");
 			var e1 = c1.AddChildNode("E1");
 
-			var nodesDepthFirst = tree.TraverseDepthFirst().ToList();
-			var nodesBreadthFirst = tree.TraverseBreadthFirst().ToList();
 			tree.Root.Print(Console.Out);
+			
+			var nodesDepthFirst = tree.TraverseDepthFirst().ToList();
+			foreach (var node in nodesDepthFirst)
+				Console.WriteLine(new String(' ', (Int32)node.Level * 2) + node.Node);
+				
+			var nodesBreadthFirst = tree.TraverseBreadthFirst().ToList();
+			foreach (var node in nodesBreadthFirst)
+				Console.WriteLine(new String(' ', (Int32)node.Level * 2) + node.Node);
 		}
 	}
 }

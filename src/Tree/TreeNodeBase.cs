@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace Tree
 {
@@ -50,52 +51,32 @@ namespace Tree
 				Children[i].PrintInternal(textWriter, indent, i == Children.Count - 1);
 		}
 
-		public IEnumerable<TreeNodeBase<T>> TraverseDescendantsDepthFirst()
+		public IEnumerable<(TreeNodeBase<T> Node, UInt32 Level)> TraverseDescendantsDepthFirst()
 		{
-			//var stack = new Stack<TreeNodeBase<T>>();
-			//var node = this;
-			//do
-			//{
-			//	foreach (var child in node.Children)
-			//		stack.Push(child);
-			//	var next = stack.Pop();
-			//	yield return next;
-			//}
-			//while (stack.Count != 0);
-
-			//stack.Push(this);
-			//while (stack.Count != 0)
-			//{
-			//	var next = stack.Pop();
-			//	yield return next;
-			//	foreach (var child in next.Children)
-			//		stack.Push(child);
-			//}
-
-			foreach (var child in Children)
+			var stack = new Stack<(TreeNodeBase<T> Node, UInt32 Level)>();
+			foreach (var child in this.Children.Reverse())
+				stack.Push((child, 0u));
+			while (stack.Count != 0)
 			{
-				yield return child;
-				foreach (var grandChild in child.TraverseDescendantsDepthFirst())
-					yield return grandChild;
+				var next = stack.Pop();
+				yield return next;
+				foreach (var child in next.Node.Children.Reverse())
+					stack.Push((child, next.Level + 1));
 			}
 		}
 
-		public IEnumerable<TreeNodeBase<T>> TraverseDescendantsBreadthFirst()
+		public IEnumerable<(TreeNodeBase<T> Node, UInt32 Level)> TraverseDescendantsBreadthFirst()
 		{
-			var queue = new Queue<TreeNodeBase<T>>();
-			queue.Enqueue(this);
+			var queue = new Queue<(TreeNodeBase<T> Node, UInt32 Level)>();
+			foreach (var child in this.Children)
+				queue.Enqueue((child, 0u));
 			while (queue.Count != 0)
 			{
 				var next = queue.Dequeue();
 				yield return next;
-				foreach (var child in next.Children)
-					queue.Enqueue(child);
+				foreach (var child in next.Node.Children)
+					queue.Enqueue((child, next.Level + 1));
 			}
-			//foreach (var child in Children)
-			//	yield return child;
-			//foreach (var child in Children)
-			//	foreach (var grandChild in child.TraverseDescendantsDepthFirst())
-			//		yield return grandChild;
 		}
 	}
 }

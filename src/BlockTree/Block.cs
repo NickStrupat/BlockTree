@@ -64,14 +64,14 @@ namespace TheBlockTree
 
         public void CopyBytesTo(Span<Byte> destination)
 		{
-            var buffer = destination;
+			var buffer = destination;
             ParentSignature.Span.Serialize(buffer);
 			buffer = buffer.Slice(ParentSignature.Span.GetSerializationLength());
-			ParentSignature.Span.Serialize(buffer);
+			Data.Span.Serialize(buffer);
 			buffer = buffer.Slice(Data.Span.GetSerializationLength());
-			ParentSignature.Span.Serialize(buffer);
+			Signature.Span.Serialize(buffer);
 			buffer = buffer.Slice(Signature.Span.GetSerializationLength());
-			ParentSignature.Span.Serialize(buffer);
+			PublicKey.Span.Serialize(buffer);
 		}
 
 		public override Int32 GetHashCode()

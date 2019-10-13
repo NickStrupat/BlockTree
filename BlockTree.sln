@@ -11,9 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlockTree", "src\BlockTree\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlockTree.Tests", "test\BlockTree.Tests\BlockTree.Tests.csproj", "{C53F4835-C409-4E3E-A126-72040FF90690}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tree", "src\Tree\Tree.csproj", "{478F1F75-234C-4A67-B63C-6DD7C5E5A1C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tree", "src\Tree\Tree.csproj", "{478F1F75-234C-4A67-B63C-6DD7C5E5A1C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tree.Testing", "test\Tree.Testing\Tree.Testing.csproj", "{EE5D4AD8-F410-467F-BC7E-0EE154933ED7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tree.Testing", "test\Tree.Testing\Tree.Testing.csproj", "{EE5D4AD8-F410-467F-BC7E-0EE154933ED7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

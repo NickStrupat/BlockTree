@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NSec.Cryptography;
@@ -10,8 +11,11 @@ namespace TheBlockTree
 	// blocks are verified
 	public class BlockTree
     {
+		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		private readonly BlockIndex blockIndex;
+		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		private readonly Tree<Block> tree;
+
 		public TreeRootNode<Block> Root => tree.Root;
 
 		public BlockTree(IEnumerable<Block> unverifiedBlocks)

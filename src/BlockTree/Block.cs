@@ -1,23 +1,11 @@
 ﻿#nullable enable
 using System;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using NSec.Cryptography;
 
 namespace TheBlockTree
 {
-	static class ReadOnlySpanExtensions
-	{
-		// public static Boolean IsEqual<T>(this ReadOnlySpan<T> a, ReadOnlySpan<T> b) =>
-		// 	a.Length == b.Length && (a == b || a.SequenceEqual<T>(b));
-		public static Int32 SerializationSize(this ReadOnlySpan<Byte> bytes) => sizeof(Int32) + bytes.Length;
-		public static void Serialize(this ReadOnlySpan<Byte> bytes, Span<Byte> destination)
-		{
-			MemoryMarshal.AsBytes(stackalloc Int32[] { bytes.Length }).CopyTo(destination);
-			bytes.CopyTo(destination.Slice(sizeof(Int32)));
-		}
-	}
-	[DebuggerTypeProxy(typeof(BlockDebugView))]
+    [DebuggerTypeProxy(typeof(BlockDebugView))]
 	public class Block : IEquatable<Block>
 	{
 		public readonly ReadOnlyMemory<Byte> ParentSignature;
@@ -36,63 +24,74 @@ namespace TheBlockTree
 			Signature = SignParentSignatureAndData(key);
 		}
 
+        private Int32 BytesForCryptoLength => ParentSignature.Length + Data.Length;
+        private void CopyBytesForCryptoTo(Span<Byte> destination)
+        {
+            ParentSignature.Span.CopyTo(destination);
+            Data.Span.CopyTo(destination.Slice(ParentSignature.Length));
+        }
+
 		private Byte[] SignParentSignatureAndData(Key key)
-		{
-			Span<Byte> data = stackalloc Byte[ParentSignature.Length + Data.Length];
-			ParentSignature.Span.CopyTo(data);
-			Data.Span.CopyTo(data.Slice(ParentSignature.Length));
-			return Algorithm.Sign(key, data);
+        {
+            Span<byte> bytesForCrypto = stackalloc Byte[BytesForCryptoLength];
+            CopyBytesForCryptoTo(bytesForCrypto);
+            return Algorithm.Sign(key, bytesForCrypto);
 		}
 
-		public Boolean VerifyChild(Block child)
+        private Boolean VerifyParentSignatureAndData()
+        {
+            Span<byte> bytesForCrypto = stackalloc Byte[BytesForCryptoLength];
+            CopyBytesForCryptoTo(bytesForCrypto);
+            var publicKey = NSec.Cryptography.PublicKey.Import(Algorithm, PublicKey.Span, PublicKeyBlobFormat);
+            return Algorithm.Verify(publicKey, bytesForCrypto, Signature.Span);
+        }
+
+        public Boolean VerifyChild(Block child)
 		{
 			// simple check if signatures match
 			if (!Signature.Span.SequenceEqual(child.ParentSignature.Span))
 				return false;
 
-			// actual data integrity check that the signature of (parent signature + data) results in the child's signature
-			var publicKey = NSec.Cryptography.PublicKey.Import(Algorithm, child.PublicKey.Span, PublicKeyBlobFormat);
-			Span<Byte> data = stackalloc Byte[child.ParentSignature.Length + child.Data.Length];
-			child.ParentSignature.Span.CopyTo(data);
-			child.Data.Span.CopyTo(data.Slice(child.ParentSignature.Length));
-			return Algorithm.Verify(publicKey, data, child.Signature.Span);
+            // actual data integrity check that the signature of (parent signature + data) results in the child's signature
+            return child.VerifyParentSignatureAndData();
 		}
 
-		public Byte[] ToBytes()
+        public Int32 BytesLength =>
+            ParentSignature.Span.GetSerializationLength() +
+            Data.Span.GetSerializationLength() +
+            Signature.Span.GetSerializationLength() +
+            PublicKey.Span.GetSerializationLength();
+
+
+        public void CopyBytesTo(Span<Byte> destination)
 		{
-			int parentSignatureSerializationSize = ParentSignature.Span.SerializationSize();
-			int dataSerializationSize = Data.Span.SerializationSize();
-			int signatureSerializationSize = Signature.Span.SerializationSize();
-			int publicKeySerializationSize = PublicKey.Span.SerializationSize();
-
-			var bytes = new Byte[
-				parentSignatureSerializationSize +
-				dataSerializationSize +
-				signatureSerializationSize +
-				publicKeySerializationSize
-			];
-
-			Span<Byte> destination = bytes;
-			ParentSignature.Span.Serialize(destination);
-			destination = destination.Slice(parentSignatureSerializationSize);
-			ParentSignature.Span.Serialize(destination);
-			destination = destination.Slice(dataSerializationSize);
-			ParentSignature.Span.Serialize(destination);
-			destination = destination.Slice(signatureSerializationSize);
-			ParentSignature.Span.Serialize(destination);
-			return bytes;
+            var buffer = destination;
+            ParentSignature.Span.Serialize(buffer);
+			buffer = buffer.Slice(ParentSignature.Span.GetSerializationLength());
+			ParentSignature.Span.Serialize(buffer);
+			buffer = buffer.Slice(Data.Span.GetSerializationLength());
+			ParentSignature.Span.Serialize(buffer);
+			buffer = buffer.Slice(Signature.Span.GetSerializationLength());
+			ParentSignature.Span.Serialize(buffer);
 		}
 
 		public override Int32 GetHashCode()
 		{
 			var hashCode = new HashCode();
-			var bytes = ToBytes();
+            Span<Byte> bytes = stackalloc Byte[BytesLength];
+			CopyBytesTo(bytes);
 			foreach (var @byte in bytes)
 				hashCode.Add(@byte);
 			return hashCode.ToHashCode();
 		}
-		public override String ToString() => Convert.ToBase64String(ToBytes());
-		public override Boolean Equals(Object o) => o is Block && this.Equals(o);
+        public override String ToString()
+        {
+            Span<Byte> bytes = stackalloc Byte[BytesLength];
+            CopyBytesTo(bytes);
+            return Convert.ToBase64String(bytes);
+        }
+
+        public override Boolean Equals(Object o) => o is Block && this.Equals(o);
 		public Boolean Equals(Block other) =>
 			(
 				ParentSignature.Length == other.ParentSignature.Length &&

@@ -21,8 +21,8 @@ namespace Tree.Testing
 			tree.Root.Print(Console.Out);
 			
 			var nodesDepthFirst = tree.TraverseDepthFirst().ToList();
-			foreach (var node in nodesDepthFirst)
-				Console.WriteLine(new String(' ', (Int32)node.Level * 2) + node.Value);
+			foreach (var (Node, Level) in nodesDepthFirst)
+				Console.WriteLine(new String(' ', (Int32)Level * 2) + Node);
 
 			var nodesBreadthFirst = tree.TraverseBreadthFirst().ToList();
 			var level = -1u;
@@ -33,7 +33,7 @@ namespace Tree.Testing
 					level = node.Level;
 					Console.WriteLine();
 				}
-				Console.Write(node.Value + "  ");
+				Console.Write(node.Node + "  ");
 			}
 			Console.WriteLine();
 		}

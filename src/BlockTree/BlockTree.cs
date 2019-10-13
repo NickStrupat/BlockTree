@@ -17,6 +17,7 @@ namespace TheBlockTree
 		private readonly Tree<Block> tree;
 
 		public TreeRootNode<Block> Root => tree.Root;
+		public IEnumerable<(TreeNodeBase<Block> Node, UInt32 Level)> TraverseDepthFirst() => tree.TraverseDepthFirst();
 
 		public BlockTree(IEnumerable<Block> unverifiedBlocks)
 		{
@@ -58,15 +59,16 @@ namespace TheBlockTree
 			tree = new Tree<Block>(rootBlock);
 		}
 
-		public Boolean TryAdd(Block parent, Byte[] data, Key key, [NotNullWhen(true)] out Block? childBlock)
+		public Boolean TryAdd(TreeNodeBase<Block> parent, Byte[] data, Key key, [NotNullWhen(true)] out TreeNodeBase<Block>? child)
 		{
-			if (!blockIndex.Contains(parent.Signature))
+			if (!blockIndex.Contains(parent.Value.Signature))
 			{
-				childBlock = null;
+				child = null;
 				return false;
 			}
-			childBlock = new Block(parent.Signature, data, key);
+			var childBlock = new Block(parent.Value.Signature, data, key);
 			blockIndex.Add(childBlock);
+			child = parent.AddChildNode(childBlock);
 			return true;
 		}
 

@@ -13,6 +13,8 @@ namespace TheBlockTree
 		private readonly Dictionary<ReadOnlyMemory<Byte>, List<Block>> childBlocksByParentSignature =
 			new Dictionary<ReadOnlyMemory<Byte>, List<Block>>(ReadOnlyMemoryEqualityComparer<Byte>.Instance);
 
+		public Int32 Count => blocksBySignature.Count;
+
 		public Boolean Contains(ReadOnlyMemory<Byte> signature) =>
 			blocksBySignature.ContainsKey(signature);
 

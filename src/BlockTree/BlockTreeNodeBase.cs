@@ -1,14 +1,16 @@
 ﻿#nullable enable
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace TheBlockTree
 {
 	public abstract class BlockTreeNodeBase
 	{
 		public Block Block { get; }
-
-		private readonly IList<BlockTreeNode> children = new List<BlockTreeNode>();
 		public IReadOnlyList<BlockTreeNode> Children { get; }
+
+		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+		private readonly List<BlockTreeNode> children = new List<BlockTreeNode>();
 
 		private protected BlockTreeNodeBase(Block block)
 		{

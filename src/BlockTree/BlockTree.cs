@@ -1,5 +1,7 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NSec.Cryptography;
 
@@ -17,14 +19,15 @@ namespace TheBlockTree
 			var unverifiedBlockIndex = new BlockIndex();
 			foreach (var unverifiedBlock in unverifiedBlocks)
 				unverifiedBlockIndex.Add(unverifiedBlock);
-			var rootBlock = unverifiedBlockIndex.GetChildren(ReadOnlyMemory<Byte>.Empty).SingleOrDefault();
-			if (rootBlock == null)
+
+			var rootBlock = unverifiedBlockIndex.TryGetChildren(ReadOnlyMemory<Byte>.Empty, out var foundBlocks) ?
+				foundBlocks.Single() : 
 				throw new NoRootBlock();
+
 			VerifyChildrenDepthFirst(rootBlock);
 			void VerifyChildrenDepthFirst(Block parent)
 			{
-				var children = unverifiedBlockIndex.GetChildren(parent);
-				if (children == null)
+				if (!unverifiedBlockIndex.TryGetChildren(parent.Signature, out var children))
 					return;
 				foreach (var child in children)
 				{
@@ -33,21 +36,20 @@ namespace TheBlockTree
 					VerifyChildrenDepthFirst(child);
 				}
 			}
-			Root = rootBlock!;
+			Root = rootBlock;
 			blockIndex = unverifiedBlockIndex;
 		}
 		
 		public BlockTree(Byte[] rootData, Key key)
 		{
-			Root = new Block(Array.Empty<Byte>(), rootData, key);
+			Root = new Block(ReadOnlyMemory<Byte>.Empty, rootData, key);
 			blockIndex = new BlockIndex();
 			blockIndex.Add(Root);
 		}
 
-		public Boolean TryAdd(Block parent, Byte[] data, Key key, out Block? childBlock)
+		public Boolean TryAdd(Block parent, Byte[] data, Key key, [NotNullWhen(true)] out Block? childBlock)
 		{
-			var maybe = blockIndex.GetBySignature(parent.Signature);
-			if (maybe == null)
+			if (!blockIndex.Contains(parent.Signature))
 			{
 				childBlock = null;
 				return false;

@@ -1,5 +1,7 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using NSec.Cryptography;
 using Xunit;
@@ -8,7 +10,6 @@ namespace TheBlockTree.BlockTreeTests
 {
 	public class UnitTest1
 	{
-
 		[Fact]
 		public void TestBlockTree()
 		{

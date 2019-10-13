@@ -1,6 +1,8 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace TheBlockTree
@@ -13,28 +15,27 @@ namespace TheBlockTree
 		private readonly Dictionary<ReadOnlyMemory<Byte>, List<Block>> childBlocksByParentSignature =
 			new Dictionary<ReadOnlyMemory<Byte>, List<Block>>(ReadOnlyMemoryEqualityComparer<Byte>.Instance);
 
-		public Block? GetBySignature(ReadOnlyMemory<Byte> signature)
+		public Boolean Contains(ReadOnlyMemory<Byte> signature) =>
+			blocksBySignature.ContainsKey(signature);
+
+		public Boolean TryGetBySignature(ReadOnlyMemory<Byte> signature, [NotNullWhen(true)] out Block? block) =>
+			blocksBySignature.TryGetValue(signature, out block);
+
+		public Boolean TryGetChildren(ReadOnlyMemory<Byte> signature, [NotNullWhen(true)] out IReadOnlyList<Block>? children)
 		{
-			Console.WriteLine("a\t" + new Bytes(signature));
-			return blocksBySignature.GetValueOrDefault(signature);
+			if (childBlocksByParentSignature.TryGetValue(signature, out var values))
+			{
+				children = values.AsReadOnly();
+				return true;
+			}
+			children = null;
+			return false;
 		}
-
-		public Block? GetParent(Block block) =>
-			GetBySignature(block.ParentSignature);
-
-		public IReadOnlyList<Block>? GetChildren(ReadOnlyMemory<Byte> signature) =>
-			childBlocksByParentSignature.GetValueOrDefault(signature);
-
-		public IReadOnlyList<Block>? GetChildren(Block block) =>
-			childBlocksByParentSignature.GetValueOrDefault(block.Signature);
 
 		public void Add(Block block)
 		{
 			blocksBySignature.Add(block.Signature, block);
-			if (childBlocksByParentSignature.TryGetValue(block.ParentSignature, out var children))
-				children.Add(block);
-			else
-				childBlocksByParentSignature.Add(block.ParentSignature, new List<Block> { block });
+			childBlocksByParentSignature.AddValue(block.ParentSignature, block);
 		}
 
 		public List<Block> GetAllBlocks() =>

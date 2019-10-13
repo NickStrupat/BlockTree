@@ -1,6 +1,4 @@
-﻿#nullable enable
-
-namespace TheBlockTree
+﻿namespace TheBlockTree
 {
 	public sealed class BlockTreeRootNode : BlockTreeNodeBase
 	{

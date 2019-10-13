@@ -1,6 +1,4 @@
-﻿#nullable enable
-
-namespace Tree
+﻿namespace Tree
 {
 	public sealed class TreeRootNode<T> : TreeNodeBase<T>
 	{

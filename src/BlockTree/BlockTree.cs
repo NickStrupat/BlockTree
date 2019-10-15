@@ -10,7 +10,7 @@ namespace TheBlockTree
 {
 	// blocks are verified
 	public class BlockTree
-    {
+	{
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		private readonly BlockIndex blockIndex;
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]

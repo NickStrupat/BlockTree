@@ -2,6 +2,6 @@
 {
 	public sealed class TreeRootNode<T> : TreeNodeBase<T>
 	{
-		public TreeRootNode(T value) : base(value) {}
+		internal TreeRootNode(T value) : base(value) {}
 	}
 }

@@ -3,6 +3,6 @@
 	public sealed class TreeNode<T> : TreeNodeBase<T>
 	{
 		public TreeNodeBase<T> Parent { get; }
-		public TreeNode(TreeNodeBase<T> parent, T value) : base(value) => Parent = parent;
+		internal TreeNode(TreeNodeBase<T> parent, T value) : base(value) => Parent = parent;
 	}
 }

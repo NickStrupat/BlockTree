@@ -6,7 +6,7 @@ using System.Linq;
 namespace TheBlockTree
 {
 	// no verification of block signatures nor chaining is done by the index
-	public class BlockIndex
+	public sealed class BlockIndex
 	{
 		private readonly Dictionary<ReadOnlyMemory<Byte>, Block> blocksBySignature =
 			new Dictionary<ReadOnlyMemory<Byte>, Block>(ReadOnlyMemoryEqualityComparer<Byte>.Instance);

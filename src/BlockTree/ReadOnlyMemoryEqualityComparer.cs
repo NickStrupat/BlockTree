@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace TheBlockTree
 {
-	public class ReadOnlyMemoryEqualityComparer<T> : IEqualityComparer<ReadOnlyMemory<T>> where T : IEquatable<T>
+	public sealed class ReadOnlyMemoryEqualityComparer<T> : IEqualityComparer<ReadOnlyMemory<T>> where T : IEquatable<T>
 	{
 		public static readonly ReadOnlyMemoryEqualityComparer<T> Instance = new ReadOnlyMemoryEqualityComparer<T>();
 

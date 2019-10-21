@@ -5,7 +5,7 @@ using NSec.Cryptography;
 namespace TheBlockTree
 {
 	[DebuggerTypeProxy(typeof(BlockDebugView))]
-	public class Block : IEquatable<Block>
+	public sealed class Block : IEquatable<Block>
 	{
 		public readonly ReadOnlyMemory<Byte> ParentSignature;
 		public readonly ReadOnlyMemory<Byte> Data;

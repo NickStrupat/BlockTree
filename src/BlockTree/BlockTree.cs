@@ -9,7 +9,7 @@ using Tree;
 namespace TheBlockTree
 {
 	// blocks are verified
-	public class BlockTree
+	public sealed class BlockTree
 	{
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		private readonly BlockIndex blockIndex;
@@ -53,7 +53,7 @@ namespace TheBlockTree
 		
 		public BlockTree(Byte[] rootData, Key key)
 		{
-			var rootBlock = new Block(ReadOnlyMemory<Byte>.Empty, rootData, key);
+			var rootBlock = new Block(ReadOnlySpan<Byte>.Empty, rootData, key);
 			blockIndex = new BlockIndex();
 			blockIndex.Add(rootBlock);
 			tree = new Tree<Block>(rootBlock);
@@ -66,7 +66,7 @@ namespace TheBlockTree
 				child = null;
 				return false;
 			}
-			var childBlock = new Block(parent.Value.Signature, data, key);
+			var childBlock = new Block(parent.Value.Signature.Span, data, key);
 			blockIndex.Add(childBlock);
 			child = parent.AddChildNode(childBlock);
 			return true;

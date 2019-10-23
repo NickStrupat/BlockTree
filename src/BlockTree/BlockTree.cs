@@ -29,7 +29,7 @@ namespace TheBlockTree
 			// get the root node
 			var rootBlock = unverifieBlockIndex.TryGetChildren(ReadOnlyMemory<Byte>.Empty, out var foundBlocks) ?
 				foundBlocks.Single() :
-				throw new NoRootBlock();
+				throw new NoRootBlockException();
 
 			// verify the blocks and build a tree
 			tree = new Tree<Block>(rootBlock);
@@ -74,8 +74,8 @@ namespace TheBlockTree
 
 		public IReadOnlyList<Block> GetAllBlocks() => blockIndex.GetAllBlocks();
 
-		public class NoRootBlock : Exception {
-			internal NoRootBlock() { }
+		public class NoRootBlockException : Exception {
+			internal NoRootBlockException() { }
 		}
 
 		public class InvalidBlocksException : Exception

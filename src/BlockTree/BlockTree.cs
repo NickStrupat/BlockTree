@@ -72,7 +72,7 @@ namespace TheBlockTree
 			return true;
 		}
 
-		public List<Block> GetAllBlocks() => blockIndex.GetAllBlocks();
+		public IReadOnlyList<Block> GetAllBlocks() => blockIndex.GetAllBlocks();
 
 		public class NoRootBlock : Exception {
 			internal NoRootBlock() { }

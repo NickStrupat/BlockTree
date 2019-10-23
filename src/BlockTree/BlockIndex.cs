@@ -1,3 +1,4 @@
+using Gma.DataStructures;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -10,8 +11,9 @@ namespace TheBlockTree
 	{
 		private readonly Dictionary<ReadOnlyMemory<Byte>, Block> blocksBySignature =
 			new Dictionary<ReadOnlyMemory<Byte>, Block>(ReadOnlyMemoryEqualityComparer<Byte>.Instance);
-		private readonly Dictionary<ReadOnlyMemory<Byte>, List<Block>> childBlocksByParentSignature =
-			new Dictionary<ReadOnlyMemory<Byte>, List<Block>>(ReadOnlyMemoryEqualityComparer<Byte>.Instance);
+
+		private readonly Dictionary<ReadOnlyMemory<Byte>, OrderedSet<Block>> childBlocksByParentSignature =
+			new Dictionary<ReadOnlyMemory<Byte>, OrderedSet<Block>>(ReadOnlyMemoryEqualityComparer<Byte>.Instance);
 
 		public Int32 Count => blocksBySignature.Count;
 
@@ -25,7 +27,7 @@ namespace TheBlockTree
 		{
 			if (childBlocksByParentSignature.TryGetValue(signature, out var values))
 			{
-				children = values.AsReadOnly();
+				children = values.ToList();
 				return true;
 			}
 			children = null;
@@ -38,7 +40,7 @@ namespace TheBlockTree
 			childBlocksByParentSignature.AddValue(block.ParentSignature, block);
 		}
 
-		public List<Block> GetAllBlocks() =>
+		public IReadOnlyList<Block> GetAllBlocks() =>
 			blocksBySignature.Values.ToList();
 	}
 }

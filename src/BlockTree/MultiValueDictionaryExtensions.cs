@@ -1,16 +1,17 @@
 ﻿using Gma.DataStructures;
+using System;
 using System.Collections.Generic;
 
 namespace TheBlockTree
 {
 	static class MultiValueDictionaryExtensions
 	{
-		public static void AddValue<K, V>(this Dictionary<K, OrderedSet<V>> dictionary, K key, V value)
+		public static Boolean Try<K, V>(this Dictionary<K, OrderedSet<V>> dictionary, K key, V value)
 		{
 			if (dictionary.TryGetValue(key, out var values))
-				values.Add(value);
-			else
-				dictionary.Add(key, new OrderedSet<V> { value });
+				return values.Add(value);
+			dictionary.Add(key, new OrderedSet<V> { value });
+			return true;
 		}
 	}
 }

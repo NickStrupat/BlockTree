@@ -1,0 +1,14 @@
+{
+  "name": "blocktree",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "author": "Nick Strupat",
+  "license": "ISC",
+  "dependencies": {
+    "tweetnacl": "^1.0.1"
+  }
+}

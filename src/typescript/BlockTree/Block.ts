@@ -55,10 +55,9 @@ export class Block {
 
 	toString = () : string => {
 		return Convert.toBase64String(this.data);
-		//return JSON.stringify(this.serialize(), null, 1);
 	}
 
-	serialize(): NonFunctionPropertiesAsStrings<Block> {
+	asStrings(): NonFunctionPropertiesAsStrings<Block> {
 		return {
 			parentSignature: Convert.toBase64String(this.parentSignature),
 			data: Convert.toBase64String(this.data),

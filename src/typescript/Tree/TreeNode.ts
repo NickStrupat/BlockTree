@@ -11,11 +11,11 @@ export abstract class TreeNodeBase<T> {
 		return node;
 	}
 
-	print(): void {
-		this.printInternal('', true);
+	print(valueToString?: (value: T) => string): void {
+		this.printInternal('', true, valueToString);
 	}
 
-	private printInternal(indent: string, last: boolean): void {
+	private printInternal(indent: string, last: boolean, valueToString?: (value: T) => string): void {
 		let line = indent;
 		if (last) {
 			line += '└─';
@@ -25,10 +25,11 @@ export abstract class TreeNodeBase<T> {
 			line += '├─';
 			indent += '│ ';
 		}
-		console.log(line + this.value);
+		const text = valueToString === undefined ? this.value : valueToString(this.value);
+		console.log(line + text);
 
 		for (let i = 0; i !== this.children.length; i++)
-			this.children[i].printInternal(indent, i === this.children.length - 1)
+			this.children[i].printInternal(indent, i === this.children.length - 1, valueToString);
 	}
 
 	* traverseDescendantsDepthFirst(): IterableIterator<NodeLevel<T>> {

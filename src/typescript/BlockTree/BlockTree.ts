@@ -1,7 +1,7 @@
 import { BlockIndex } from "./BlockIndex";
 import { Block } from "./Block";
 import { Tree } from "../Tree/Tree";
-import { TreeNodeBase } from "../Tree/TreeNode";
+import { TreeNodeBase, TreeRootNode } from "../Tree/TreeNode";
 import { Queue } from "../Common/Queue";
 
 export class NoRootBlockError extends Error {}
@@ -20,6 +20,10 @@ export class BlockTree {
 	private readonly tree: Tree<Block>;
 
 	private static readonly emptyBytes = new Uint8Array(0);
+
+	get root(): TreeRootNode<Block> {
+		return this.tree.root;
+	}
 
 	constructor(unverifiedBlocks: IterableIterator<Block>);
 	constructor(rootData: Uint8Array, keyPair: nacl.SignKeyPair);

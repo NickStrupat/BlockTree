@@ -1,4 +1,5 @@
 import { sign } from 'tweetnacl';
+import { Convert } from './Convert';
 
 function areEqual(a: Uint8Array, b: Uint8Array): boolean {
 	if (a.length !== b.length)
@@ -9,17 +10,24 @@ function areEqual(a: Uint8Array, b: Uint8Array): boolean {
 	return true;
 }
 
+type NonFunctionPropertyNames<T> = { [K in keyof T]: T[K] extends Function ? never : K }[keyof T];
+type NonFunctionPropertiesAsStrings<T> = { [P in NonFunctionPropertyNames<T>]: string };
+
 export class Block {
+	readonly parentSignature: Uint8Array;
+	readonly data: Uint8Array;
 	readonly signature: Uint8Array;
 	readonly publicKey: Uint8Array;
 
 	constructor(
-		readonly parentSignature: Uint8Array,
-		readonly data: Uint8Array,
+		parentSignature: Uint8Array,
+		data: Uint8Array,
 		keyPair: nacl.SignKeyPair,
 	) {
-		this.publicKey = keyPair.publicKey;
+		this.parentSignature = parentSignature;
+		this.data = data;
 		this.signature = this.sign(keyPair);
+		this.publicKey = keyPair.publicKey;
 	}
 
 	private getBytesForCrypto(): Uint8Array {
@@ -43,5 +51,19 @@ export class Block {
 			return false;
 		// actual data integrity check that the signature of (parent signature + data) results in the child's signature
 		return child.verify();
+	}
+
+	toString = () : string => {
+		return Convert.toBase64String(this.data);
+		//return JSON.stringify(this.serialize(), null, 1);
+	}
+
+	serialize(): NonFunctionPropertiesAsStrings<Block> {
+		return {
+			parentSignature: Convert.toBase64String(this.parentSignature),
+			data: Convert.toBase64String(this.data),
+			signature: Convert.toBase64String(this.signature),
+			publicKey: Convert.toBase64String(this.publicKey),
+		};
 	}
 }

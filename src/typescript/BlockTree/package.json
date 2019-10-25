@@ -9,6 +9,8 @@
   "author": "Nick Strupat",
   "license": "ISC",
   "dependencies": {
+    "buffer": "^5.4.3",
     "tweetnacl": "^1.0.1"
-  }
+  },
+  "devDependencies": {}
 }

@@ -83,6 +83,7 @@ namespace TheBlockTree
 				hashCode.Add(@byte);
 			return hashCode.ToHashCode();
 		}
+		
 		public override String ToString()
 		{
 			Span<Byte> bytes = stackalloc Byte[BytesLength];

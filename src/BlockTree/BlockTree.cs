@@ -18,6 +18,7 @@ namespace TheBlockTree
 
 		public TreeRootNode<Block> Root => tree.Root;
 		public IEnumerable<(TreeNodeBase<Block> Node, UInt32 Level)> TraverseDepthFirst() => tree.TraverseDepthFirst();
+		public IEnumerable<(TreeNodeBase<Block> Node, UInt32 Level)> TraverseBreadthFirst() => tree.TraverseBreadthFirst();
 
 		public BlockTree(IEnumerable<Block> unverifiedBlocks)
 		{
@@ -49,7 +50,6 @@ namespace TheBlockTree
 
 			blockIndex = unverifieBlockIndex; // now verified
 		}
-
 		
 		public BlockTree(Byte[] rootData, Key key)
 		{

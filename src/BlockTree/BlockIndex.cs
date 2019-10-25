@@ -37,7 +37,7 @@ namespace TheBlockTree
 		public void Add(Block block)
 		{
 			blocksBySignature.Add(block.Signature, block);
-			if (childBlocksByParentSignature.Try(block.ParentSignature, block))
+			if (childBlocksByParentSignature.TryAddValue(block.ParentSignature, block))
 				return;
 			blocksBySignature.Remove(block.Signature);
 			throw new ArgumentException("An element with the same key already exists in the set");

@@ -6,7 +6,7 @@ namespace TheBlockTree
 {
 	static class MultiValueDictionaryExtensions
 	{
-		public static Boolean Try<K, V>(this Dictionary<K, OrderedSet<V>> dictionary, K key, V value)
+		public static Boolean TryAddValue<K, V>(this Dictionary<K, OrderedSet<V>> dictionary, K key, V value)
 		{
 			if (dictionary.TryGetValue(key, out var values))
 				return values.Add(value);

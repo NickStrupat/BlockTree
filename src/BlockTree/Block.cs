@@ -7,7 +7,7 @@ namespace TheBlockTree
 	[DebuggerTypeProxy(typeof(BlockDebugView))]
 	public sealed class Block : IEquatable<Block>
 	{
-		public readonly ReadOnlyMemory<Byte> ParentSignature;
+		public readonly ReadOnlyMemory<ReadOnlyMemory<Byte>> ParentSignatures;
 		public readonly ReadOnlyMemory<Byte> Data;
 		public readonly ReadOnlyMemory<Byte> Signature;
 		public readonly ReadOnlyMemory<Byte> PublicKey;
@@ -23,7 +23,15 @@ namespace TheBlockTree
 			Signature = SignParentSignatureAndData(key);
 		}
 
-		private Int32 BytesForCryptoLength => ParentSignature.Length + Data.Length;
+		private Int32 BytesForCryptoLength {
+			get {
+				var sumOfSignatureLengths = 0;
+				for (var i = 0; i != ParentSignatures.Length; i++)
+					sumOfSignatureLengths += ParentSignatures.Span[i].Length;
+				return sumOfSignatureLengths + Data.Length;
+			}
+		}
+
 		private void CopyBytesForCryptoTo(Span<Byte> destination)
 		{
 			ParentSignature.Span.CopyTo(destination);

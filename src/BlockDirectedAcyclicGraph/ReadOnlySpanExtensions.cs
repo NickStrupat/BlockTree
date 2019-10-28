@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Buffers.Binary;
 
-namespace TheBlockTree
+namespace BlockTree
 {
     static class ReadOnlySpanExtensions
 	{

@@ -49,7 +49,7 @@ namespace BlockTree
 			return Algorithm.Verify(publicKey, bytesForCrypto, Signature.ImmutableSpan.Span);
 		}
 
-		public Boolean Verify(Func<ImmutableMemory<Byte>, Block> getBlockBySignature) // FUCK, how do i verify multiple parents
+		public Boolean Verify(Func<ImmutableMemory<Byte>, Block> getBlockBySignature)
 		{
 			// simple check if signatures match
 			foreach (var parentSignature in ParentSignatures)

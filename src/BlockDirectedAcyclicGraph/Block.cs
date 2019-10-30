@@ -1,32 +1,33 @@
 ﻿using NSec.Cryptography;
 using System;
 
-namespace BlockTree
+namespace NickStrupat
 {
 	public readonly partial struct Block
 	{
-		public SignatureEnumerable ParentSignatures => new SignatureEnumerable(parentSignaturesBytes, Algorithm.SignatureSize);
-		private readonly ImmutableMemory<Byte> parentSignaturesBytes;
+		public readonly ImmutableMemory<Byte> ParentSignatures;
 		public readonly ImmutableMemory<Byte> Data;
 		public readonly ImmutableMemory<Byte> Signature;
 		public readonly ImmutableMemory<Byte> PublicKey;
 
+		public SignaturesEnumerable ParentSignaturesEnumerable => new SignaturesEnumerable(ParentSignatures, Algorithm.SignatureSize);
+
 		public Block(ImmutableMemory<Byte> parentSignatures, ImmutableMemory<Byte> data, Key key) : this()
 		{
-			if (parentSignatures.Length == 0 || parentSignatures.Length % Algorithm.SignatureSize != 0)
+			if (!IsParentSignaturesLengthValid(parentSignatures))
 				throw new ArgumentException();
-			this.parentSignaturesBytes = parentSignatures;
+			ParentSignatures = parentSignatures;
 			Data = data;
 			PublicKey = key.PublicKey.Export(KeyBlobFormat.RawPublicKey);
 			Signature = SignParentSignaturesAndData(key);
 		}
 
-		private Int32 LengthOfCryptoBytes => parentSignaturesBytes.Length + Data.Length;
+		private Int32 LengthOfCryptoBytes => ParentSignatures.Length + Data.Length;
 
 		private void CopyBytesForCryptoTo(Span<Byte> destination)
 		{
 			var buffer = destination;
-			foreach (var parentSignature in ParentSignatures)
+			foreach (var parentSignature in ParentSignaturesEnumerable)
 			{
 				parentSignature.ImmutableSpan.CopyTo(buffer);
 				buffer = buffer.Slice(parentSignature.Length);
@@ -45,25 +46,17 @@ namespace BlockTree
 		{
 			Span<byte> bytesForCrypto = stackalloc Byte[LengthOfCryptoBytes];
 			CopyBytesForCryptoTo(bytesForCrypto);
-			var publicKey = NSec.Cryptography.PublicKey.Import(Algorithm, PublicKey.ImmutableSpan.Span, PublicKeyBlobFormat);
+			if (!NSec.Cryptography.PublicKey.TryImport(Algorithm, PublicKey.ImmutableSpan.Span, PublicKeyBlobFormat, out var publicKey))
+				return false;
 			return Algorithm.Verify(publicKey, bytesForCrypto, Signature.ImmutableSpan.Span);
 		}
 
-		public Boolean Verify(Func<ImmutableMemory<Byte>, Block> getBlockBySignature)
-		{
-			// simple check if signatures match
-			foreach (var parentSignature in ParentSignatures)
-			{
-				var parentBlock = getBlockBySignature(parentSignature);
-				if (!parentBlock.Signature.ImmutableSpan.Span.SequenceEqual(parentSignature.ImmutableSpan.Span))
-					return false;
-			}
+		public Boolean Verify() => VerifyParentSignaturesAndData();
 
-			// actual data integrity check that the signature of (parent signature + data) results in the child's signature
-			return child.VerifyParentSignatureAndData();
-		}
+		private static Boolean IsParentSignaturesLengthValid(ImmutableMemory<Byte> parentSignatures) =>
+			parentSignatures.Length % Algorithm.SignatureSize == 0;
 
-		private static readonly SignatureAlgorithm Algorithm = SignatureAlgorithm.Ed25519;
-		private static readonly KeyBlobFormat PublicKeyBlobFormat = KeyBlobFormat.RawPublicKey;
+		public static readonly SignatureAlgorithm Algorithm = SignatureAlgorithm.Ed25519;
+		public static readonly KeyBlobFormat PublicKeyBlobFormat = KeyBlobFormat.RawPublicKey;
 	}
 }

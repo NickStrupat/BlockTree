@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace BlockTree
+namespace NickStrupat
 {
 	public readonly ref struct ImmutableSpan<T>
 	{

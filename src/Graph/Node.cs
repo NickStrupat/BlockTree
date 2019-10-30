@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using NickStrupat;
 
-namespace BlockTree.Graph
+namespace NickStrupat.Graph
 {
 	public readonly struct Node
 	{

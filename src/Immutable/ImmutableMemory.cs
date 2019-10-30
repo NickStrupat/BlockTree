@@ -2,13 +2,13 @@
 using System.Buffers;
 using System.ComponentModel;
 
-namespace BlockTree
+namespace NickStrupat
 {
 	public readonly struct ImmutableMemory<T>
 	{
 		public ReadOnlyMemory<T> Memory { get; }
 		public ImmutableMemory(ReadOnlySpan<T> source) => Memory = source.IsEmpty ? ReadOnlyMemory<T>.Empty : source.ToArray();
-		private ImmutableMemory(ReadOnlyMemory<T> memory) => Memory = memory;
+		internal ImmutableMemory(ReadOnlyMemory<T> memory) => Memory = memory;
 
 		public ImmutableSpan<T> ImmutableSpan => new ImmutableSpan<T>(this);
 
@@ -32,5 +32,12 @@ namespace BlockTree
 
 		public static implicit operator ImmutableMemory<T>(ArraySegment<T> segment) => new ImmutableMemory<T>(segment.AsSpan());
 		public static implicit operator ImmutableMemory<T>(T[] array) => new ImmutableMemory<T>((ReadOnlySpan<T>) array);
+
+		public static ImmutableMemory<T> Create<TState>(Int32 length, TState state, SpanAction<T, TState> action)
+		{
+			var array = new T[length];
+			action(array.AsSpan(), state);
+			return new ImmutableMemory<T>(array.AsMemory());
+		}
 	}
 }

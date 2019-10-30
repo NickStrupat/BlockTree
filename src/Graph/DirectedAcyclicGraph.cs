@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace BlockTree.Graph
+namespace NickStrupat.Graph
 {
 	public class DirectedAcyclicGraph
 	{
 		public Node Root { get; }
 
-		public DirectedAcyclicGraph() => Root = new Node(ReadOnlyMemory<Node>.Empty, ReadOnlyMemory<Byte>.Empty);
+		public DirectedAcyclicGraph() => Root = new Node(ImmutableMemory<Node>.Empty, ImmutableMemory<Byte>.Empty);
 	}
 }

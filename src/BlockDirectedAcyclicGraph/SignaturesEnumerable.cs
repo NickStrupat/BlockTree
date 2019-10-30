@@ -1,14 +1,13 @@
-﻿using BlockTree.Graph;
-using System;
+﻿using System;
 using System.Runtime.CompilerServices;
 
-namespace BlockTree
+namespace NickStrupat
 {
-	public ref struct SignatureEnumerable
+	public readonly ref struct SignaturesEnumerable
 	{
 		private readonly ImmutableMemory<Byte> signatures;
 		private readonly Int32 signatureLength;
-		internal SignatureEnumerable(ImmutableMemory<Byte> signatures, Int32 signatureLength)
+		internal SignaturesEnumerable(ImmutableMemory<Byte> signatures, Int32 signatureLength)
 		{
 			this.signatures = signatures;
 			this.signatureLength = signatureLength;

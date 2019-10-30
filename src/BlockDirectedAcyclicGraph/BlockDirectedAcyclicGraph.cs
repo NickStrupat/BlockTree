@@ -1,10 +1,10 @@
 ﻿using System;
 
-namespace BlockTree
+namespace NickStrupat
 {
 	public readonly struct BlockDirectedAcyclicGraph
 	{
 		public Block Root { get; }
-		public BlockDirectedAcyclicGraph() => Root = new Block()
+		public BlockDirectedAcyclicGraph(Block root) => Root = root;
 	}
 }

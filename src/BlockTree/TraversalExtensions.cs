@@ -1,34 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
-namespace BlockTree
+namespace TheBlockTree
 {
-	class TraversalExtensions
+	public static class TraversalExtensions
 	{
-		public static IEnumerable<T> TraverseDepthFirst<T>(T item, Func<T, IEnumerable<T>> childSelector)
+		public static IEnumerable<(T Node, UInt32 Level)> TraverseDepthFirst<T>(this T root, Func<T, IEnumerable<T>> childSelector)
 		{
-			var stack = new Stack<T>();
-			stack.Push(item);
+			var stack = new Stack<(T Node, UInt32 Level)>();
+			stack.Push((root, 0u));
 			while (stack.Count != 0)
 			{
 				var next = stack.Pop();
 				yield return next;
-				foreach (var child in childSelector(next))
-					stack.Push(child);
+				foreach (var child in childSelector(next.Node))
+					stack.Push((child, next.Level + 1));
 			}
 		}
 
-		public static IEnumerable<T> TraverseBreadthFirst<T>(T item, Func<T, IEnumerable<T>> childSelector)
+		public static IEnumerable<(T Node, UInt32 Level)> TraverseBreadthFirst<T>(this T root, Func<T, IEnumerable<T>> childSelector)
 		{
-			var stack = new Queue<T>();
-			stack.Enqueue(item);
+			var stack = new Queue<(T Node, UInt32 Level)>();
+			stack.Enqueue((root, 0u));
 			while (stack.Count != 0)
 			{
 				var next = stack.Dequeue();
 				yield return next;
-				foreach (var child in childSelector(next))
-					stack.Enqueue(child);
+				foreach (var child in childSelector(next.Node))
+					stack.Enqueue((child, next.Level + 1));
 			}
 		}
 	}

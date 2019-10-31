@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NSec.Cryptography;
-using Tree;
 
 namespace TheBlockTree
 {
@@ -14,8 +12,8 @@ namespace TheBlockTree
 		public Block Root { get; }
 		private readonly BlockIndex blockIndex;
 
-		public IEnumerable<(TreeNodeBase<Block> Node, UInt32 Level)> TraverseDepthFirst() => tree.TraverseDepthFirst();
-		public IEnumerable<(TreeNodeBase<Block> Node, UInt32 Level)> TraverseBreadthFirst() => tree.TraverseBreadthFirst();
+		public IEnumerable<(Block Block, UInt32 Level)> TraverseDepthFirst() => blockIndex.TraverseDepthFirst(Root);
+		public IEnumerable<(Block Block, UInt32 Level)> TraverseBreadthFirst() => blockIndex.TraverseBreadthFirst(Root);
 
 		public BlockTree(IEnumerable<Block> unverifiedBlocks)
 		{
@@ -56,7 +54,6 @@ namespace TheBlockTree
 
 		public Boolean TryAdd(Block parent, Byte[] data, Key key, [NotNullWhen(true)] out Block? child)
 		{
-			blockIndex.TryGetBySignature(parent.Signature, out var existingBlock);
 			if (!blockIndex.Contains(parent.Signature))
 			{
 				child = null;
@@ -64,7 +61,7 @@ namespace TheBlockTree
 			}
 			var childBlock = new Block(parent.Signature.Span, data, key);
 			blockIndex.Add(childBlock);
-			child = parent.AddChildNode(childBlock);
+			child = childBlock;
 			return true;
 		}
 

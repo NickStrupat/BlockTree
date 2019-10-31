@@ -11,8 +11,4 @@
 		<PackageReference Include="NSec.Cryptography" Version="19.5.0" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\Tree\Tree.csproj" />
-	</ItemGroup>
-
 </Project>

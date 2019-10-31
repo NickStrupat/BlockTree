@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using NSec.Cryptography;
-using Tree;
 using Xunit;
 
 namespace TheBlockTree.BlockTreeTests
@@ -15,11 +14,11 @@ namespace TheBlockTree.BlockTreeTests
 			using var key = Key.Create(SignatureAlgorithm.Ed25519);
 			var blockTree = new BlockTree(Array.Empty<Byte>(), key);
 
-			Assert.Equal(Array.Empty<Byte>(), blockTree.Root.Value.ParentSignature);
-			Assert.NotEqual(Array.Empty<Byte>(), blockTree.Root.Value.Signature);
+			Assert.Equal(Array.Empty<Byte>(), blockTree.Root.ParentSignature);
+			Assert.NotEqual(Array.Empty<Byte>(), blockTree.Root.Signature);
 
 			Assert.True(blockTree.TryAdd(blockTree.Root, Encoding.UTF8.GetBytes("Hello"), key, out var newBlock));
-			Assert.Equal(blockTree.Root.Value.Signature, newBlock!.Value.ParentSignature, ReadOnlyMemoryEqualityComparer<Byte>.Instance);
+			Assert.Equal(blockTree.Root.Signature, newBlock!.ParentSignature, ReadOnlyMemoryEqualityComparer<Byte>.Instance);
 		}
 
 		[Fact]
@@ -33,13 +32,13 @@ namespace TheBlockTree.BlockTreeTests
 				Assert.True(
 					blockTree.TryAdd(blockTree.Root, Encoding.UTF8.GetBytes($"Hello #{i}"), key, out var newBlock)
 				);
-				verifiedBlocks.Add(newBlock!.Value);
+				verifiedBlocks.Add(newBlock!);
 			}
 
 			var blockIndex = new BlockIndex();
 			foreach (var verifiedBlock in verifiedBlocks)
 				blockIndex.Add(verifiedBlock);
-			blockIndex.Add(blockTree.Root.Value);
+			blockIndex.Add(blockTree.Root);
 
 			var blocks = blockIndex.GetAllBlocks();
 			var blockTree2 = new BlockTree(blocks);
@@ -60,7 +59,7 @@ namespace TheBlockTree.BlockTreeTests
 						Assert.True(
 							blockTree.TryAdd(blockTree.Root, Encoding.UTF8.GetBytes($"Hello #{j}"), key, out var newBlock)
 						);
-						blockIndex.Add(newBlock!.Value);
+						blockIndex.Add(newBlock!);
 					}
 				}
 			});
@@ -80,8 +79,8 @@ namespace TheBlockTree.BlockTreeTests
 			Assert.True(tree.TryAdd(postedMessage!, MsgBytes("(read)"), userB, out postedMessage));
 
 			var msgs = new List<String>();
-			foreach (var (Node, Level) in tree.TraverseDepthFirst())
-				msgs.Add(Convert.ToBase64String(Node.Value.PublicKey.Span).Substring(0, 4) + ": " + Encoding.ASCII.GetString(Node.Value.Data.Span));
+			foreach (var (Block, Level) in tree.TraverseDepthFirst())
+				msgs.Add(Convert.ToBase64String(Block.PublicKey.Span).Substring(0, 4) + ": " + Encoding.ASCII.GetString(Block.Data.Span));
 		}
 	}
 }

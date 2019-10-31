@@ -12,9 +12,6 @@ namespace TheBlockTree
 		public Block Root { get; }
 		private readonly BlockIndex blockIndex;
 
-		public IEnumerable<(Block Block, UInt32 Level)> TraverseDepthFirst() => blockIndex.TraverseDepthFirst(Root);
-		public IEnumerable<(Block Block, UInt32 Level)> TraverseBreadthFirst() => blockIndex.TraverseBreadthFirst(Root);
-
 		public BlockTree(IEnumerable<Block> unverifiedBlocks)
 		{
 			// build up index of all blocks
@@ -66,6 +63,9 @@ namespace TheBlockTree
 		}
 
 		public IReadOnlyList<Block> GetAllBlocks() => blockIndex.GetAllBlocks();
+
+		public IEnumerable<(Block Block, UInt32 Level)> TraverseDepthFirst() => blockIndex.TraverseDepthFirst(Root);
+		public IEnumerable<(Block Block, UInt32 Level)> TraverseBreadthFirst() => blockIndex.TraverseBreadthFirst(Root);
 
 		public class NoRootBlockException : Exception {
 			internal NoRootBlockException() { }

@@ -1,74 +1,67 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NSec.Cryptography;
-using Tree;
 
 namespace TheBlockTree
 {
 	// blocks are verified
 	public sealed class BlockTree
 	{
-		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+		public Block Root { get; }
 		private readonly BlockIndex blockIndex;
-		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-		private readonly Tree<Block> tree;
 
-		public TreeRootNode<Block> Root => tree.Root;
-		public IEnumerable<(TreeNodeBase<Block> Node, UInt32 Level)> TraverseDepthFirst() => tree.TraverseDepthFirst();
-		public IEnumerable<(TreeNodeBase<Block> Node, UInt32 Level)> TraverseBreadthFirst() => tree.TraverseBreadthFirst();
+		public IEnumerable<(Block Block, UInt32 Level)> TraverseDepthFirst() => blockIndex.TraverseDepthFirst(Root);
+		public IEnumerable<(Block Block, UInt32 Level)> TraverseBreadthFirst() => blockIndex.TraverseBreadthFirst(Root);
 
 		public BlockTree(IEnumerable<Block> unverifiedBlocks)
 		{
 			// build up index of all blocks
-			var unverifieBlockIndex = new BlockIndex();
+			var unverifiedBlockIndex = new BlockIndex();
 			foreach (var unverifiedBlock in unverifiedBlocks)
-				unverifieBlockIndex.Add(unverifiedBlock);
+				unverifiedBlockIndex.Add(unverifiedBlock);
 
 			// get the root node
-			var rootBlock = unverifieBlockIndex.TryGetChildren(ReadOnlyMemory<Byte>.Empty, out var foundBlocks) ?
+			Root = unverifiedBlockIndex.TryGetChildren(ReadOnlyMemory<Byte>.Empty, out var foundBlocks) ?
 				foundBlocks.Single() :
 				throw new NoRootBlockException();
 
 			// verify the blocks and build a tree
-			tree = new Tree<Block>(rootBlock);
-			var queue = new Queue<TreeNodeBase<Block>>(unverifieBlockIndex.Count);
-			queue.Enqueue(tree.Root);
+			var queue = new Queue<Block>(unverifiedBlockIndex.Count / 2);
+			queue.Enqueue(Root);
 			while (queue.Count != 0)
 			{
 				var current = queue.Dequeue();
-				if (!unverifieBlockIndex.TryGetChildren(current.Value.Signature, out var children))
+				if (!unverifiedBlockIndex.TryGetChildren(current.Signature, out var children))
 					continue;
 				foreach (var child in children)
-					if (current.Value.VerifyChild(child))
-						queue.Enqueue(current.AddChildNode(child));
+					if (current.VerifyChild(child))
+						queue.Enqueue(child);
 					else
-						throw new InvalidBlocksException(current.Value, child);
+						throw new InvalidBlocksException(current, child);
 			}
 
-			blockIndex = unverifieBlockIndex; // now verified
+			blockIndex = unverifiedBlockIndex; // now verified
 		}
 		
 		public BlockTree(Byte[] rootData, Key key)
 		{
-			var rootBlock = new Block(ReadOnlySpan<Byte>.Empty, rootData, key);
+			Root = new Block(ReadOnlySpan<Byte>.Empty, rootData, key);
 			blockIndex = new BlockIndex();
-			blockIndex.Add(rootBlock);
-			tree = new Tree<Block>(rootBlock);
+			blockIndex.Add(Root);
 		}
 
-		public Boolean TryAdd(TreeNodeBase<Block> parent, Byte[] data, Key key, [NotNullWhen(true)] out TreeNodeBase<Block>? child)
+		public Boolean TryAdd(Block parent, Byte[] data, Key key, [NotNullWhen(true)] out Block? child)
 		{
-			if (!blockIndex.Contains(parent.Value.Signature))
+			if (!blockIndex.Contains(parent.Signature))
 			{
 				child = null;
 				return false;
 			}
-			var childBlock = new Block(parent.Value.Signature.Span, data, key);
+			var childBlock = new Block(parent.Signature.Span, data, key);
 			blockIndex.Add(childBlock);
-			child = parent.AddChildNode(childBlock);
+			child = childBlock;
 			return true;
 		}
 

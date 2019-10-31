@@ -45,5 +45,13 @@ namespace TheBlockTree
 
 		public IReadOnlyList<Block> GetAllBlocks() =>
 			blocksBySignature.Values.ToList();
+
+		public IEnumerable<(Block Block, UInt32 Level)> TraverseDepthFirst(Block root) => root.TraverseDepthFirst(
+			x => TryGetChildren(x.Signature, out var children) ? children : Array.Empty<Block>()
+		);
+
+		public IEnumerable<(Block Block, UInt32 Level)> TraverseBreadthFirst(Block root) => root.TraverseBreadthFirst(
+			x => TryGetChildren(x.Signature, out var children) ? children : Array.Empty<Block>()
+		);
 	}
 }

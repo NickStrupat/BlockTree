@@ -101,20 +101,20 @@ namespace TheBlockTree
 
 		public override Boolean Equals(Object o) => o is Block && this.Equals(o);
 		public Boolean Equals(Block other) =>
-			(
+			( // check lengths first because that's fast and rules out any obvious mismatches
 				ParentSignature.Length == other.ParentSignature.Length &&
 				Data.Length == other.Data.Length &&
 				Signature.Length == other.Signature.Length &&
 				PublicKey.Length == other.PublicKey.Length
 			) &&
 			(
-				(
+				( // check if the spans are actually the exact same instance of span (e.g. comparing to itself)
 					ParentSignature.Span == other.ParentSignature.Span &&
 					Data.Span == other.Data.Span &&
 					Signature.Span == other.Signature.Span &&
 					PublicKey.Span == other.PublicKey.Span
 				) ||
-				(
+				( // actually compare the contents of the spans for equality
 					ParentSignature.Span.SequenceEqual(other.ParentSignature.Span) &&
 					Data.Span.SequenceEqual(other.Data.Span) &&
 					Signature.Span.SequenceEqual(other.Signature.Span) &&

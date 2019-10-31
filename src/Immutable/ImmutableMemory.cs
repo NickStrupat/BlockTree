@@ -12,7 +12,7 @@ namespace NickStrupat
 
 		public ImmutableSpan<T> ImmutableSpan => new ImmutableSpan<T>(this);
 
-		public static ImmutableMemory<T> Empty { get; } = new ImmutableMemory<T>(ReadOnlySpan<T>.Empty);
+		public static ImmutableMemory<T> Empty => default;
 
 		public Int32 Length => Memory.Length;
 		public Boolean IsEmpty => Memory.IsEmpty;

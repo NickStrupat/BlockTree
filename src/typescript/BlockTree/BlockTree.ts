@@ -1,8 +1,7 @@
 import { BlockIndex } from "./BlockIndex";
 import { Block } from "./Block";
-import { Tree } from "../Tree/Tree";
-import { TreeNodeBase, TreeRootNode } from "../Tree/TreeNode";
 import { Queue } from "../Common/Queue";
+import { NodeLevel } from "./Traverse";
 
 export class NoRootBlockError extends Error {}
 
@@ -16,14 +15,10 @@ export class InvalidBlocksError extends Error {
 }
 
 export class BlockTree {
+	public readonly root: Block;
 	private readonly blockIndex = new BlockIndex();
-	private readonly tree: Tree<Block>;
 
 	private static readonly emptyBytes = new Uint8Array(0);
-
-	get root(): TreeRootNode<Block> {
-		return this.tree.root;
-	}
 
 	constructor(unverifiedBlocks: IterableIterator<Block>);
 	constructor(rootData: Uint8Array, keyPair: nacl.SignKeyPair);
@@ -33,10 +28,9 @@ export class BlockTree {
 			const rootData = param1 as Uint8Array;
 			const keyPair = param2;
 
-			const rootBlock = new Block(BlockTree.emptyBytes, rootData, keyPair);
+			this.root = new Block(BlockTree.emptyBytes, rootData, keyPair);
 			this.blockIndex = new BlockIndex();
-			this.blockIndex.add(rootBlock);
-			this.tree = new Tree<Block>(rootBlock);
+			this.blockIndex.add(this.root);
 		}
 		else {
 			const unverifiedBlocks = param1 as IterableIterator<Block>;
@@ -50,22 +44,21 @@ export class BlockTree {
 			const maybeRootBlock = unverifiedBlockIndex.tryGetChildren(BlockTree.emptyBytes);
 			if (maybeRootBlock === undefined || maybeRootBlock.length !== 1)
 				throw new NoRootBlockError();
-			const rootBlock = maybeRootBlock[0];
+			this.root = maybeRootBlock[0];
 
 			// verify the blocks and build a tree
-			this.tree = new Tree<Block>(rootBlock);
-			const queue = new Queue<TreeNodeBase<Block>>(); // using array.shirt() as queue pop is slow O(N)
-			queue.push(this.tree.root);
+			const queue = new Queue<Block>(); // using array.shirt() as queue pop is slow O(N)
+			queue.push(this.root);
 			while (!queue.empty()) {
 				const current = queue.pop();
-				const children = unverifiedBlockIndex.tryGetChildren(current.value.signature);
+				const children = unverifiedBlockIndex.tryGetChildren(current.signature);
 				if (children === undefined)
 					continue;
 				for (let child of children) {
-					if (current.value.verifyChild(child))
-						queue.push(current.addChildNode(child))
+					if (current.verifyChild(child))
+						queue.push(child)
 					else
-						throw new InvalidBlocksError(current.value, child);
+						throw new InvalidBlocksError(current, child);
 				}
 			}
 
@@ -73,16 +66,24 @@ export class BlockTree {
 		}
 	}
 
-	tryAdd(parent: TreeNodeBase<Block>, data: Uint8Array, key: nacl.SignKeyPair): TreeNodeBase<Block> | undefined {
-		if (!this.blockIndex.contains(parent.value.signature))
+	tryAdd(parent: Block, data: Uint8Array, key: nacl.SignKeyPair): Block | undefined {
+		if (!this.blockIndex.contains(parent.signature))
 			return undefined;
 
-		const childBlock = new Block(parent.value.signature, data, key);
+		const childBlock = new Block(parent.signature, data, key);
 		this.blockIndex.add(childBlock);
-		return parent.addChildNode(childBlock);
+		return childBlock;
 	}
 
 	getAllBlocks(): readonly Block[] {
 		return this.blockIndex.getAllBlocks();
+	}
+
+	traverseDepthFirst(): IterableIterator<NodeLevel<Block>> {
+		return this.blockIndex.traverseDepthFirst(this.root);
+	}
+
+	traverseBreadthFirst(): IterableIterator<NodeLevel<Block>> {
+		return this.blockIndex.traverseBreadthFirst(this.root);
 	}
 }

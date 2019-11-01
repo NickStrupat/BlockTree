@@ -1,5 +1,6 @@
 import { Block } from "./Block";
 import { Convert } from "./Convert";
+import { NodeLevel, Traverse } from "./Traverse";
 
 export class BlockIndex {
 	private readonly blocksBySignature = new Map<string, Block>();
@@ -45,5 +46,20 @@ export class BlockIndex {
 
 	getAllBlocks(): readonly Block[] {
 		return Array.from(this.blocksBySignature.values());
+	}
+
+	private getChildren(node: Block): IterableIterator<Block> {
+		const children = this.tryGetChildren(node.signature);
+		if (children === undefined)
+			return [].values();
+		return children.values();
+	}
+
+	traverseDepthFirst(root: Block): IterableIterator<NodeLevel<Block>> {
+		return Traverse.depthFirst(root, this.getChildren);
+	}
+
+	traverseBreadthFirst(root: Block): IterableIterator<NodeLevel<Block>> {
+		return Traverse.breadthFirst(root, this.getChildren);
 	}
 }

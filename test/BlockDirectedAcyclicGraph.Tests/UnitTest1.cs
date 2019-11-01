@@ -80,6 +80,13 @@ namespace BlockDirectedAcyclicGraph.Tests
 			block3.Signature.ImmutableSpan.CopyTo(parentSignatures.Slice(Block.Algorithm.SignatureSize));
 			var joinBlock = new Block(new ImmutableMemory<Byte>(parentSignatures), GetBytes("join"), key3);
 			Assert.True(joinBlock.Verify());
+
+			foreach (var block in new[] { genesisBlock, block2, block3, joinBlock })
+			{
+				var memory = ImmutableMemory<Byte>.Create(genesisBlock.SerializationLength, genesisBlock, (buf, blk) => blk.Serialize(buf));
+				var deserializedBlock = Block.Deserialize(memory);
+				Assert.True(deserializedBlock.Verify());
+			}
 		}
 	}
 }

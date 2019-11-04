@@ -27,6 +27,30 @@ namespace BlockDirectedAcyclicGraph.Tests
 		}
 
 		[Fact]
+		public void SerializationRoundtripEquality()
+		{
+			var key = Key.Create(Block.Algorithm);
+
+			var requestBlock = new Block(ImmutableMemory<Byte>.Empty, Encoding.UTF8.GetBytes("request"), key);
+			var responeBlock = new Block(requestBlock.Signature, Encoding.UTF8.GetBytes("response"), key);
+
+			var reqBytes = ImmutableMemory<Byte>.Create(requestBlock.SerializationLength, requestBlock, (bytes, block) => block.Serialize(bytes));
+			var resBytes = ImmutableMemory<Byte>.Create(responeBlock.SerializationLength, requestBlock, (bytes, block) => block.Serialize(bytes));
+
+			var requestBlock2 = Block.Deserialize(reqBytes);
+			var responeBlock2 = Block.Deserialize(resBytes);
+
+			Assert.True(requestBlock2.Verify());
+			Assert.True(responeBlock2.Verify());
+
+			Assert.Equal(requestBlock.GetHashCode(), requestBlock2.GetHashCode());
+			Assert.Equal(responeBlock2.GetHashCode(), responeBlock2.GetHashCode());
+
+			Assert.Equal(requestBlock, requestBlock2);
+			Assert.Equal(responeBlock2, responeBlock2);
+		}
+
+		[Fact]
 		public void VerifiedGenesisBlockSerializedThenDeserializedIsVerified()
 		{
 			var key = Key.Create(Block.Algorithm);
@@ -46,8 +70,8 @@ namespace BlockDirectedAcyclicGraph.Tests
 			var key1 = Key.Create(Block.Algorithm);
 			var key2 = Key.Create(Block.Algorithm);
 
-			var genesisBlock = new Block(ImmutableMemory<Byte>.Empty, Encoding.Unicode.GetBytes("genesis"), key1);
-			var block = new Block(genesisBlock.Signature, Encoding.Unicode.GetBytes("request"), key2);
+			var genesisBlock = new Block(ImmutableMemory<Byte>.Empty, Encoding.UTF8.GetBytes("genesis"), key1);
+			var block = new Block(genesisBlock.Signature, Encoding.UTF8.GetBytes("request"), key2);
 
 			Span<Byte> bytes = stackalloc Byte[genesisBlock.SerializationLength];
 			Span<Byte> bytes2 = stackalloc Byte[block.SerializationLength];

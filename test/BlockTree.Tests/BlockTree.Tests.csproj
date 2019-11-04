@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\BlockTree\BlockTree.csproj" />
+    <ProjectReference Include="..\..\src\dotnet\BlockTree\BlockTree.csproj" />
   </ItemGroup>
 
 </Project>

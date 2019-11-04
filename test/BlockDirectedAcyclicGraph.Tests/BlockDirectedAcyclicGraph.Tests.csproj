@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\BlockDirectedAcyclicGraph\BlockDirectedAcyclicGraph.csproj" />
+    <ProjectReference Include="..\..\src\dotnet\BlockDirectedAcyclicGraph\BlockDirectedAcyclicGraph.csproj" />
   </ItemGroup>
 
 </Project>

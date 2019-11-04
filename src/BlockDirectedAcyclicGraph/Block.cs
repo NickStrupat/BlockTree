@@ -5,21 +5,23 @@ namespace NickStrupat
 {
 	public readonly partial struct Block
 	{
+		public readonly ImmutableMemory<Byte> PublicKey;
 		public readonly ImmutableMemory<Byte> ParentSignatures;
 		public readonly ImmutableMemory<Byte> Data;
 		public readonly ImmutableMemory<Byte> Signature;
-		public readonly ImmutableMemory<Byte> PublicKey;
+		public readonly Boolean IsVerified;
 
 		public SignaturesEnumerable ParentSignaturesEnumerable => new SignaturesEnumerable(ParentSignatures, Algorithm.SignatureSize);
 
 		public Block(ImmutableMemory<Byte> parentSignatures, ImmutableMemory<Byte> data, Key key) : this()
 		{
-			if (!IsParentSignaturesLengthValid(parentSignatures))
+			if (!IsParentSignaturesLengthValid(parentSignatures.Length))
 				throw new ArgumentException();
+			PublicKey = key.PublicKey.Export(KeyBlobFormat.RawPublicKey);
 			ParentSignatures = parentSignatures;
 			Data = data;
-			PublicKey = key.PublicKey.Export(KeyBlobFormat.RawPublicKey);
 			Signature = SignParentSignaturesAndData(key);
+			IsVerified = true;
 		}
 
 		private Int32 LengthOfCryptoBytes => ParentSignatures.Length + Data.Length;
@@ -53,8 +55,8 @@ namespace NickStrupat
 
 		public Boolean Verify() => VerifyParentSignaturesAndData();
 
-		private static Boolean IsParentSignaturesLengthValid(ImmutableMemory<Byte> parentSignatures) =>
-			parentSignatures.Length % Algorithm.SignatureSize == 0;
+		private static Boolean IsParentSignaturesLengthValid(Int32 parentSignaturesLength) =>
+			parentSignaturesLength % Algorithm.SignatureSize == 0;
 
 		public static readonly SignatureAlgorithm Algorithm = SignatureAlgorithm.Ed25519;
 		public static readonly KeyBlobFormat PublicKeyBlobFormat = KeyBlobFormat.RawPublicKey;

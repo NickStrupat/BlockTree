@@ -5,56 +5,95 @@ namespace NickStrupat
 	public readonly partial struct Block
 	{
 		private Block(
+			ImmutableMemory<Byte> publicKey,
 			ImmutableMemory<Byte> parentSignatures,
 			ImmutableMemory<Byte> data,
-			ImmutableMemory<Byte> signature,
-			ImmutableMemory<Byte> publicKey
+			ImmutableMemory<Byte> signature
 		) : this()
 		{
 			ParentSignatures = parentSignatures;
 			Data = data;
 			Signature = signature;
 			PublicKey = publicKey;
+			IsVerified = VerifyParentSignaturesAndData();
 		}
 
 		public static Boolean TryDeserialize(ImmutableMemory<Byte> rawBlockBytes, out Block block)
 		{
-			var parentSignatures = rawBlockBytes.ReadAndAdvance();
-			if (!IsParentSignaturesLengthValid(parentSignatures))
-				throw new ArgumentException();
-			var data = rawBlockBytes.ReadAndAdvance();
-			var signature = rawBlockBytes.ReadAndAdvance();
-			var publicKey = rawBlockBytes.ReadAndAdvance();
-
-			var unverifiedBlock = new Block(parentSignatures, data, signature, publicKey);
-			if (unverifiedBlock.VerifyParentSignaturesAndData())
-			{
-				block = unverifiedBlock;
-				return true;
-			}
 			block = default;
-			return false;
+
+			var publicKeyLength = rawBlockBytes.ReadInt32AndAdvance();
+			if (publicKeyLength != Algorithm.PublicKeySize)
+				return false;
+			var publicKey = rawBlockBytes.ReadBytesAndAdvance(publicKeyLength);
+
+			var parentSignaturesLength = rawBlockBytes.ReadInt32AndAdvance();
+			if (!IsParentSignaturesLengthValid(parentSignaturesLength))
+				return false;
+			var parentSignatures = rawBlockBytes.ReadBytesAndAdvance(parentSignaturesLength);
+
+			var dataLength = rawBlockBytes.ReadInt32AndAdvance();
+			var data = rawBlockBytes.ReadBytesAndAdvance(dataLength);
+
+			var signatureLength = rawBlockBytes.ReadInt32AndAdvance();
+			if (signatureLength != Algorithm.SignatureSize)
+				return false;
+			var signature = rawBlockBytes.ReadBytesAndAdvance(signatureLength);
+
+			var unverifiedBlock = new Block(publicKey, parentSignatures, data, signature);
+			if (!unverifiedBlock.IsVerified)
+				return false;
+
+			block = unverifiedBlock;
+			return true;
 		}
 
 		public static Block Deserialize(ImmutableMemory<Byte> rawBlockBytes)
 		{
-			if (!TryDeserialize(rawBlockBytes, out var block))
-				throw new ArgumentException();
-			return block;
+			var publicKeyLength = rawBlockBytes.ReadInt32AndAdvance();
+			if (publicKeyLength != Algorithm.PublicKeySize)
+				throw new ArgumentException("Deserialization failed due to invalid public key size (according to encoded header bytes)", nameof(rawBlockBytes));
+			var publicKey = rawBlockBytes.ReadBytesAndAdvance(publicKeyLength);
+
+			var parentSignaturesLength = rawBlockBytes.ReadInt32AndAdvance();
+			if (!IsParentSignaturesLengthValid(parentSignaturesLength))
+				throw new ArgumentException("Deserialization failed due to invalid parent signature list length (according to encoded header bytes)", nameof(rawBlockBytes));
+			var parentSignatures = rawBlockBytes.ReadBytesAndAdvance(parentSignaturesLength);
+
+			var dataLength = rawBlockBytes.ReadInt32AndAdvance();
+			var data = rawBlockBytes.ReadBytesAndAdvance(dataLength);
+
+			var signatureLength = rawBlockBytes.ReadInt32AndAdvance();
+			if (signatureLength != Algorithm.SignatureSize)
+				throw new ArgumentException("Deserialization failed due to invalid parent signature list length (according to encoded header bytes)", nameof(rawBlockBytes));
+			var signature = rawBlockBytes.ReadBytesAndAdvance(signatureLength);
+
+			var unverifiedBlock = new Block(publicKey, parentSignatures, data, signature);
+			if (!unverifiedBlock.IsVerified)
+				throw new ArgumentException("Deserialization failed due to failed signature verification");
+
+			return unverifiedBlock;
 		}
 
 		public Int32 SerializationLength =>
+			sizeof(Int32) + PublicKey.Length +
 			sizeof(Int32) + ParentSignatures.Length +
 			sizeof(Int32) + Data.Length +
-			sizeof(Int32) + Signature.Length +
-			sizeof(Int32) + PublicKey.Length;
+			sizeof(Int32) + Signature.Length;
 
 		public void Serialize(Span<Byte> destination)
 		{
-			destination.CopyFromAndAdvance(ParentSignatures);
-			destination.CopyFromAndAdvance(Data);
-			destination.CopyFromAndAdvance(Signature);
-			destination.CopyFromAndAdvance(PublicKey);
+			destination.WriteInt32AndAdvance(PublicKey.Length);
+			destination.WriteBytesAndAdvance(PublicKey);
+
+			destination.WriteInt32AndAdvance(ParentSignatures.Length);
+			destination.WriteBytesAndAdvance(ParentSignatures);
+
+			destination.WriteInt32AndAdvance(Data.Length);
+			destination.WriteBytesAndAdvance(Data);
+
+			destination.WriteInt32AndAdvance(Signature.Length);
+			destination.WriteBytesAndAdvance(Signature);
 		}
 	}
 }

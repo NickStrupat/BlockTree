@@ -77,7 +77,7 @@ export class Block {
 	}
 
 	private getBytesForCrypto(): Buffer {
-		const bytesForCrypto = new Buffer(this.parentSignatures.length + this.data.length);
+		const bytesForCrypto = Buffer.alloc(this.parentSignatures.length + this.data.length);
 		bytesForCrypto.set(this.parentSignatures);
 		bytesForCrypto.set(this.data, this.parentSignatures.length);
 		return bytesForCrypto;
@@ -88,7 +88,7 @@ export class Block {
 		return Buffer.from(signedBytes.buffer);
 	}
 
-	private verify(): boolean {
+	verify(): boolean {
 		return sign.detached.verify(this.getBytesForCrypto(), this.signature, this.publicKey);
 	}
 
@@ -164,7 +164,7 @@ export class Block {
 		buffer = buffer.slice(publicKeyLength);
 
 		const parentSignaturesLength = buffer.readInt32BE(0);
-		if (Block.isParentSignaturesLengthValid(parentSignaturesLength))
+		if (!Block.isParentSignaturesLengthValid(parentSignaturesLength))
 			return new InvalidParentSignaturesLengthError();
 		buffer = buffer.slice(sizeofInt32);
 		const parentSignatures = buffer.slice(0, parentSignaturesLength);

@@ -1,6 +1,6 @@
 import { Block } from "./Block";
-import { Convert } from "./Convert";
-import { NodeLevel, Traverse } from "./Traverse";
+import { Convert } from "../Common/Convert";
+import { NodeLevel, Traverse } from "../Common/Traverse";
 
 export class BlockIndex {
 	private readonly blocksBySignature = new Map<string, Block>();

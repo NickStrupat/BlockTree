@@ -10,8 +10,4 @@
 		<PackageReference Include="System.Memory" Version="4.5.3" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\Immutable\Immutable.csproj" />
-	</ItemGroup>
-
 </Project>

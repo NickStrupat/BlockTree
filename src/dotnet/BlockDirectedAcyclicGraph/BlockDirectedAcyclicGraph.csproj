@@ -11,7 +11,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Immutable\Immutable.csproj" />
+	  <ProjectReference Include="..\Immutable\Immutable.csproj" />
 	</ItemGroup>
 
 </Project>

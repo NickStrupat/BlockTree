@@ -52,12 +52,12 @@ namespace NickStrupat
 		{
 			var publicKeyLength = rawBlockBytes.ReadInt32AndAdvance();
 			if (publicKeyLength != Algorithm.PublicKeySize)
-				throw new ArgumentException("Deserialization failed due to invalid public key size (according to encoded header bytes)", nameof(rawBlockBytes));
+				throw new InvalidPublicKeyLengthException();
 			var publicKey = rawBlockBytes.ReadBytesAndAdvance(publicKeyLength);
 
 			var parentSignaturesLength = rawBlockBytes.ReadInt32AndAdvance();
 			if (!IsParentSignaturesLengthValid(parentSignaturesLength))
-				throw new ArgumentException("Deserialization failed due to invalid parent signature list length (according to encoded header bytes)", nameof(rawBlockBytes));
+				throw new InvalidParentSignaturesLengthException();
 			var parentSignatures = rawBlockBytes.ReadBytesAndAdvance(parentSignaturesLength);
 
 			var dataLength = rawBlockBytes.ReadInt32AndAdvance();
@@ -65,12 +65,12 @@ namespace NickStrupat
 
 			var signatureLength = rawBlockBytes.ReadInt32AndAdvance();
 			if (signatureLength != Algorithm.SignatureSize)
-				throw new ArgumentException("Deserialization failed due to invalid parent signature list length (according to encoded header bytes)", nameof(rawBlockBytes));
+				throw new InvalidSignatureLengthException();
 			var signature = rawBlockBytes.ReadBytesAndAdvance(signatureLength);
 
 			var unverifiedBlock = new Block(publicKey, parentSignatures, data, signature);
 			if (!unverifiedBlock.IsVerified)
-				throw new ArgumentException("Deserialization failed due to failed signature verification");
+				throw new BlockVerificationException();
 
 			return unverifiedBlock;
 		}

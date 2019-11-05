@@ -16,7 +16,7 @@ namespace NickStrupat
 		public Block(ImmutableMemory<Byte> parentSignatures, ImmutableMemory<Byte> data, Key key) : this()
 		{
 			if (!IsParentSignaturesLengthValid(parentSignatures.Length))
-				throw new ArgumentException();
+				throw new InvalidParentSignaturesLengthException();
 			PublicKey = key.PublicKey.Export(KeyBlobFormat.RawPublicKey);
 			ParentSignatures = parentSignatures;
 			Data = data;

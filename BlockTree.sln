@@ -25,6 +25,33 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Immutable", "src\dotnet\Imm
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tree", "src\dotnet\Tree\Tree.csproj", "{7F4493AA-8136-42A7-B821-955452676FAF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "typescript", "typescript", "{D7AF4D6B-D2AD-462D-B058-0D9E39400F6A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BlockDirectedAcyclicGraph", "BlockDirectedAcyclicGraph", "{B833C6A6-140E-4C65-93E1-99DBCE3B0EB8}"
+	ProjectSection(SolutionItems) = preProject
+		src\typescript\BlockDirectedAcyclicGraph\Block.ts = src\typescript\BlockDirectedAcyclicGraph\Block.ts
+		src\typescript\BlockDirectedAcyclicGraph\BlockErrors.ts = src\typescript\BlockDirectedAcyclicGraph\BlockErrors.ts
+		src\typescript\BlockDirectedAcyclicGraph\package.json = src\typescript\BlockDirectedAcyclicGraph\package.json
+		src\typescript\BlockDirectedAcyclicGraph\tsconfig.json = src\typescript\BlockDirectedAcyclicGraph\tsconfig.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{58F750F3-9367-42C4-A549-F8F49B74F507}"
+	ProjectSection(SolutionItems) = preProject
+		src\typescript\Common\Queue.ts = src\typescript\Common\Queue.ts
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BlockTree", "BlockTree", "{505D2648-6506-4AB6-83A3-F282252D7162}"
+	ProjectSection(SolutionItems) = preProject
+		src\typescript\BlockTree\Block.ts = src\typescript\BlockTree\Block.ts
+		src\typescript\BlockTree\BlockIndex.ts = src\typescript\BlockTree\BlockIndex.ts
+		src\typescript\BlockTree\BlockTree.ts = src\typescript\BlockTree\BlockTree.ts
+		src\typescript\BlockTree\Convert.ts = src\typescript\BlockTree\Convert.ts
+		src\typescript\BlockTree\package.json = src\typescript\BlockTree\package.json
+		src\typescript\BlockTree\test.ts = src\typescript\BlockTree\test.ts
+		src\typescript\BlockTree\Traverse.ts = src\typescript\BlockTree\Traverse.ts
+		src\typescript\BlockTree\tsconfig.json = src\typescript\BlockTree\tsconfig.json
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +104,10 @@ Global
 		{5B111D8C-B6E2-4A1B-8143-B9034F41FA8E} = {E4CCBBA9-6010-4A53-90F5-F02EC3222503}
 		{FF80DC19-4F45-4E90-906A-F56AD7CBBCDB} = {E4CCBBA9-6010-4A53-90F5-F02EC3222503}
 		{7F4493AA-8136-42A7-B821-955452676FAF} = {E4CCBBA9-6010-4A53-90F5-F02EC3222503}
+		{D7AF4D6B-D2AD-462D-B058-0D9E39400F6A} = {A6CCD8E7-16A0-4B18-8A95-B9D55E34FF58}
+		{B833C6A6-140E-4C65-93E1-99DBCE3B0EB8} = {D7AF4D6B-D2AD-462D-B058-0D9E39400F6A}
+		{58F750F3-9367-42C4-A549-F8F49B74F507} = {D7AF4D6B-D2AD-462D-B058-0D9E39400F6A}
+		{505D2648-6506-4AB6-83A3-F282252D7162} = {D7AF4D6B-D2AD-462D-B058-0D9E39400F6A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {45ADEC05-1D33-4DA3-BC21-171DB55835B0}

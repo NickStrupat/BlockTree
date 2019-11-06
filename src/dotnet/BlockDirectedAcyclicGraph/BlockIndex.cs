@@ -48,7 +48,7 @@ namespace NickStrupat
 
 				void AddOrThrow(ImmutableMemory<Byte> parentSignature, Block block)
 				{
-					if (!childBlocksByParentSignature.TryAddValue(parentSignature, block))
+					if (!childBlocksByParentSignature.TryAddValue(parentSignature, block, Block.EqualityComparer.Default))
 						throw new ArgumentException("An element with the same key already exists in the set");
 				}
 			}

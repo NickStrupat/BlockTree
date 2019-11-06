@@ -4,17 +4,19 @@ using System;
 using System.Text;
 using Xunit;
 
-namespace BlockDirectedAcyclicGraph.Tests
+namespace BlockDirectedAcyclicGraph_Tests
 {
-	public class UnitTest1
+	public class BlockTests
 	{
 		[Fact]
 		public void DefaultBlockIsNotVerified()
 		{
 			var block = new Block();
+			Assert.False(block.IsVerified);
 			Assert.False(block.Verify());
 
 			block = default;
+			Assert.False(block.IsVerified);
 			Assert.False(block.Verify());
 		}
 

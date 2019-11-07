@@ -5,23 +5,27 @@ namespace NickStrupat
 {
 	public readonly partial struct Block
 	{
+		public readonly UInt32 Version;
+		public readonly SignatureAlgorithmCode SignatureAlgorithmCode;
 		public readonly ImmutableMemory<Byte> PublicKey;
 		public readonly ImmutableMemory<Byte> ParentSignatures;
 		public readonly ImmutableMemory<Byte> Data;
+		public readonly ImmutableMemory<Byte> Nonce;
 		public readonly ImmutableMemory<Byte> Signature;
-		public readonly Boolean IsVerified;
 
 		public SignaturesEnumerable ParentSignaturesEnumerable => new SignaturesEnumerable(ParentSignatures, Algorithm.SignatureSize);
 
 		public Block(ImmutableMemory<Byte> parentSignatures, ImmutableMemory<Byte> data, Key key) : this()
 		{
 			if (!IsParentSignaturesLengthValid(parentSignatures.Length))
-				throw new InvalidParentSignaturesLengthException();
+				throw new InvalidParentSignaturesLengthException(parentSignatures.Length);
 			PublicKey = key.PublicKey.Export(KeyBlobFormat.RawPublicKey);
 			ParentSignatures = parentSignatures;
 			Data = data;
+			Nonce = ImmutableMemory<Byte>.Create((Int32) NonceByteLength, 0, (span, _) => RandomGenerator.Default.GenerateBytes(span));
 			Signature = SignParentSignaturesAndData(key);
-			IsVerified = true;
+			Version = 1;
+			SignatureAlgorithmCode = SignatureAlgorithmCode.Ed25519;
 		}
 
 		private Int32 LengthOfCryptoBytes => ParentSignatures.Length + Data.Length;
@@ -35,6 +39,8 @@ namespace NickStrupat
 				buffer = buffer.Slice(parentSignature.Length);
 			}
 			Data.ImmutableSpan.CopyTo(buffer);
+			buffer = buffer.Slice(Data.Length);
+			Nonce.ImmutableSpan.CopyTo(buffer);
 		}
 
 		private Byte[] SignParentSignaturesAndData(Key key)
@@ -60,5 +66,8 @@ namespace NickStrupat
 
 		public static readonly SignatureAlgorithm Algorithm = SignatureAlgorithm.Ed25519;
 		public static readonly KeyBlobFormat PublicKeyBlobFormat = KeyBlobFormat.RawPublicKey;
+		private const UInt32 NonceByteLength = 32;
 	}
+
+	public enum SignatureAlgorithmCode : UInt32 { Ed25519 = 0 }
 }

@@ -21,7 +21,7 @@ namespace BlockDirectedAcyclicGraph_Tests
 				Assert.True(
 					blockDag.TryAdd(blockDag.Root, Encoding.UTF8.GetBytes($"Hello #{i}"), key, out var newBlock)
 				);
-				verifiedBlocks.Add(newBlock!.Value);
+				verifiedBlocks.Add(newBlock);
 			}
 
 			var blockIndex = new BlockIndex();
@@ -48,7 +48,7 @@ namespace BlockDirectedAcyclicGraph_Tests
 						Assert.True(
 							blockTree.TryAdd(blockTree.Root, Encoding.UTF8.GetBytes($"Hello #{j}"), key, out var newBlock)
 						);
-						blockIndex.Add(newBlock!.Value);
+						blockIndex.Add(newBlock);
 					}
 				}
 			});

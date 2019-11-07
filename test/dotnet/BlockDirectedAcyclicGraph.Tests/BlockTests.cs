@@ -12,11 +12,9 @@ namespace BlockDirectedAcyclicGraph_Tests
 		public void DefaultBlockIsNotVerified()
 		{
 			var block = new Block();
-			Assert.False(block.IsVerified);
 			Assert.False(block.Verify());
 
 			block = default;
-			Assert.False(block.IsVerified);
 			Assert.False(block.Verify());
 		}
 

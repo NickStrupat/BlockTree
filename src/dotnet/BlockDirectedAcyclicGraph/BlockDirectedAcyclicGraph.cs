@@ -62,9 +62,9 @@ namespace NickStrupat
 			return false;
 		}
 
-		public Boolean TryAdd(in Block parent, ImmutableMemory<Byte> data, Key key, [NotNullWhen(true)] out Block? child)
+		public Boolean TryAdd(in Block parent, ImmutableMemory<Byte> data, Key key, out Block child)
 		{
-			child = null;
+			child = default;
 			if (!blockIndex.TryGetBySignature(parent.Signature, out var foundParent))
 				return false;
 			if (!parent.Equals(foundParent))

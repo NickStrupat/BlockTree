@@ -19,6 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BlockDirectedAcyclicGraph",
 	ProjectSection(SolutionItems) = preProject
 		src\typescript\BlockDirectedAcyclicGraph\Block.ts = src\typescript\BlockDirectedAcyclicGraph\Block.ts
 		src\typescript\BlockDirectedAcyclicGraph\BlockErrors.ts = src\typescript\BlockDirectedAcyclicGraph\BlockErrors.ts
+		src\typescript\BlockDirectedAcyclicGraph\BlockIndex.ts = src\typescript\BlockDirectedAcyclicGraph\BlockIndex.ts
 		src\typescript\BlockDirectedAcyclicGraph\package.json = src\typescript\BlockDirectedAcyclicGraph\package.json
 		src\typescript\BlockDirectedAcyclicGraph\tsconfig.json = src\typescript\BlockDirectedAcyclicGraph\tsconfig.json
 	EndProjectSection
@@ -40,7 +41,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{C3922A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Immutable", "src\dotnet\Immutable\Immutable.csproj", "{B84127A0-4130-4351-867A-97CF6957BC7D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SerializationTesting", "test\common\SerializationTesting\SerializationTesting.csproj", "{A7228062-7CEF-41E9-A1DD-64AD66FE5F13}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SerializationTesting", "test\common\SerializationTesting\SerializationTesting.csproj", "{A7228062-7CEF-41E9-A1DD-64AD66FE5F13}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

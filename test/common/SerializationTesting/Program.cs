@@ -16,7 +16,6 @@ namespace SerializationTesting
 			{
 				var rawBlockBytes = File.ReadAllBytes(Path);
 				var block = Block.Deserialize(new ImmutableMemory<Byte>(rawBlockBytes));
-				Console.WriteLine(block.IsVerified);
 				Console.WriteLine(block.Verify());
 			}
 

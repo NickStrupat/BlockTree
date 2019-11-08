@@ -66,6 +66,11 @@ namespace NickStrupat
 			var data = rawBlockBytes.ReadBytesAndAdvance(dataLength);
 
 			var nonceLength = rawBlockBytes.ReadInt32AndAdvance();
+			if (nonceLength != NonceByteLength)
+			{
+				exception = new InvalidNonceLengthException(parentSignaturesLength);
+				return false;
+			}
 			var nonce = rawBlockBytes.ReadBytesAndAdvance(nonceLength);
 
 			var signatureLength = rawBlockBytes.ReadInt32AndAdvance();

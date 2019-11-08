@@ -42,4 +42,10 @@ namespace NickStrupat
 		public Int32 SignatureLength { get; }
 		internal InvalidSignatureLengthException(Int32 signatureLength) => SignatureLength = signatureLength;
 	}
+
+	public sealed class InvalidNonceLengthException : BlockException
+	{
+		public Int32 NonceLength { get; }
+		internal InvalidNonceLengthException(Int32 nonceLength) => NonceLength = nonceLength;
+	}
 }

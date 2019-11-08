@@ -39,18 +39,35 @@ namespace NickStrupat
 			try
 			{
 				blocksBySignature.Add(block.Signature, block);
-				foreach (var parentSignature in block.ParentSignaturesEnumerable)
-					if (!childBlocksByParentSignature.TryAddValue(parentSignature, block))
+
+				if (block.ParentSignatures.IsEmpty)
+					AddOrThrow(block.ParentSignatures, block);
+				else
+					foreach (var parentSignature in block.ParentSignaturesEnumerable)
+						AddOrThrow(parentSignature, block);
+
+				void AddOrThrow(ImmutableMemory<Byte> parentSignature, Block block)
+				{
+					if (!childBlocksByParentSignature.TryAddValue(parentSignature, block, Block.EqualityComparer.Default))
 						throw new ArgumentException("An element with the same key already exists in the set");
+				}
 			}
 			catch
 			{
 				blocksBySignature.Remove(block.Signature);
-				foreach (var parentSignature in block.ParentSignaturesEnumerable)
+				if (block.ParentSignatures.IsEmpty)
+					RemoveIfExists(block.ParentSignatures, block);
+				else
+					foreach (var parentSignature in block.ParentSignaturesEnumerable)
+						RemoveIfExists(parentSignature, block);
+				throw;
+
+				void RemoveIfExists(ImmutableMemory<Byte> parentSignature, Block block)
+				{
 					if (childBlocksByParentSignature.TryGetValue(parentSignature, out var set))
 						if (set.Remove(block) && set.Count == 0)
 							childBlocksByParentSignature.Remove(parentSignature);
-				throw;
+				}
 			}
 		}
 

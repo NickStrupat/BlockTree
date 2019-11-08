@@ -7,23 +7,39 @@ namespace NickStrupat
 		internal BlockException() {}
 	}
 
-	public class BlockVerificationException : BlockException
+	public sealed class InvalidVersionException : BlockException
 	{
-		internal BlockVerificationException() {}
+		public UInt32 Version { get; }
+		internal InvalidVersionException(UInt32 version) => Version = version;
 	}
 
-	public class InvalidPublicKeyLengthException : BlockException
+	public sealed class InvalidSignatureAlgorithmException : BlockException
 	{
-		internal InvalidPublicKeyLengthException() {}
+		public SignatureAlgorithmCode SignatureAlgorithmCode { get; }
+		internal InvalidSignatureAlgorithmException(SignatureAlgorithmCode signatureAlgorithmCode) => SignatureAlgorithmCode = signatureAlgorithmCode;
 	}
 
-	public class InvalidParentSignaturesLengthException : BlockException
+	public sealed class BlockVerificationException : BlockException
 	{
-		internal InvalidParentSignaturesLengthException() {}
+		public Block UnverifiedBlock { get; }
+		internal BlockVerificationException(Block unverifiedBlock) => UnverifiedBlock = unverifiedBlock;
 	}
 
-	public class InvalidSignatureLengthException : BlockException
+	public sealed class InvalidPublicKeyLengthException : BlockException
 	{
-		internal InvalidSignatureLengthException() {}
+		public Int32 PublicKeyLength { get; }
+		internal InvalidPublicKeyLengthException(Int32 publicKeyLength) => PublicKeyLength = publicKeyLength;
+	}
+
+	public sealed class InvalidParentSignaturesLengthException : BlockException
+	{
+		public Int32 ParentSignaturesLength { get; }
+		internal InvalidParentSignaturesLengthException(Int32 parentSignaturesLength) => ParentSignaturesLength = parentSignaturesLength;
+	}
+
+	public sealed class InvalidSignatureLengthException : BlockException
+	{
+		public Int32 SignatureLength { get; }
+		internal InvalidSignatureLengthException(Int32 signatureLength) => SignatureLength = signatureLength;
 	}
 }

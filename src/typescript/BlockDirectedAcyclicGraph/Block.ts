@@ -76,6 +76,13 @@ export class Block {
 		return new Block(parentSignatures, data, keyPair);
 	}
 
+	*parentSignaturesIterable(): IterableIterator<Buffer> {
+		if (this.parentSignatures.length === 0)
+			return;
+		for (let i = 0; i !== this.parentSignatures.length / sign.signatureLength; i++)
+			yield this.parentSignatures.slice(i, i + sign.signatureLength);
+	}
+
 	private getBytesForCrypto(): Buffer {
 		const bytesForCrypto = Buffer.alloc(this.parentSignatures.length + this.data.length);
 		bytesForCrypto.set(this.parentSignatures);

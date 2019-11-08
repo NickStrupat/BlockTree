@@ -17,6 +17,8 @@ namespace NickStrupat
 
 		public Block(ImmutableMemory<Byte> parentSignatures, ImmutableMemory<Byte> data, Key key) : this()
 		{
+			Version = 1;
+			SignatureAlgorithmCode = SignatureAlgorithmCode.Ed25519;
 			if (!IsParentSignaturesLengthValid(parentSignatures.Length))
 				throw new InvalidParentSignaturesLengthException(parentSignatures.Length);
 			PublicKey = key.PublicKey.Export(KeyBlobFormat.RawPublicKey);
@@ -24,8 +26,6 @@ namespace NickStrupat
 			Data = data;
 			Nonce = ImmutableMemory<Byte>.Create((Int32) NonceByteLength, 0, (span, _) => RandomGenerator.Default.GenerateBytes(span));
 			Signature = SignParentSignaturesAndData(key);
-			Version = 1;
-			SignatureAlgorithmCode = SignatureAlgorithmCode.Ed25519;
 		}
 
 		private Int32 LengthOfCryptoBytes => ParentSignatures.Length + Data.Length;

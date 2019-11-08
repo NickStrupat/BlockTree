@@ -33,15 +33,15 @@ namespace BlockDirectedAcyclicGraph_Tests
 							23, 123, 4, 56, 76, 55, 99, 23, 64, 122, 98, 78, 76, 65, 54, 43,
 							23, 123, 4, 56, 76, 55, 99, 23, 64, 122, 98, 78, 76, 65, 54, 43,
 							23, 123, 4, 56, 76, 55, 99, 23, 64, 122, 98, 78, 76, 65, 54, 43 }, new Byte[] { 45, 32, 85, 74, 96, 12, 1, 54, 78 })]
-		public void IdenticalBlockCreationGivesIdenticalSignatures(Byte[] parentSignatures, Byte[] data)
+		public void IdenticalBlockCreationResultInDistinctSignaturesDueToNonce(Byte[] parentSignatures, Byte[] data)
 		{
 			var key = Key.Create(Block.Algorithm);
 
 			var parentSignaturesIm = new ImmutableMemory<Byte>(parentSignatures);
-			var dataIm = new ImmutableMemory<Byte>(parentSignatures);
+			var dataIm = new ImmutableMemory<Byte>(data);
 			var block = new Block(parentSignaturesIm, dataIm, key);
 			var block2 = new Block(parentSignaturesIm, dataIm, key);
-			Assert.True(block.Signature.ImmutableSpan.Span.SequenceEqual(block2.Signature.ImmutableSpan.Span));
+			Assert.False(block.Signature.ImmutableSpan.Span.SequenceEqual(block2.Signature.ImmutableSpan.Span));
 		}
 
 		[Fact]

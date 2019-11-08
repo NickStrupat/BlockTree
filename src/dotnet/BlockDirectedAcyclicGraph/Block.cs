@@ -28,7 +28,7 @@ namespace NickStrupat
 			SignatureAlgorithmCode = SignatureAlgorithmCode.Ed25519;
 		}
 
-		private Int32 LengthOfCryptoBytes => ParentSignatures.Length + Data.Length;
+		private Int32 LengthOfCryptoBytes => ParentSignatures.Length + Data.Length + checked((Int32) NonceByteLength);
 
 		private void CopyBytesForCryptoTo(Span<Byte> destination)
 		{

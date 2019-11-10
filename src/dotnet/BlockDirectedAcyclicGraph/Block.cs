@@ -21,11 +21,11 @@ namespace NickStrupat
 			SignatureAlgorithmCode = SignatureAlgorithmCode.Ed25519;
 			if (!IsParentSignaturesLengthValid(parentSignatures.Length))
 				throw new InvalidParentSignaturesLengthException(parentSignatures.Length);
-			PublicKey = key.PublicKey.Export(KeyBlobFormat.RawPublicKey);
+			PublicKey = new ImmutableMemory<Byte>(key.PublicKey.Export(KeyBlobFormat.RawPublicKey));
 			ParentSignatures = parentSignatures;
 			Data = data;
 			Nonce = ImmutableMemory<Byte>.Create((Int32) NonceByteLength, 0, (span, _) => RandomGenerator.Default.GenerateBytes(span));
-			Signature = SignParentSignaturesAndData(key);
+			Signature = new ImmutableMemory<Byte>(SignParentSignaturesAndData(key));
 		}
 
 		private Int32 LengthOfCryptoBytes => ParentSignatures.Length + Data.Length + checked((Int32) NonceByteLength);
@@ -35,12 +35,12 @@ namespace NickStrupat
 			var buffer = destination;
 			foreach (var parentSignature in ParentSignaturesEnumerable)
 			{
-				parentSignature.ImmutableSpan.CopyTo(buffer);
+				parentSignature.AsSpan().CopyTo(buffer);
 				buffer = buffer.Slice(parentSignature.Length);
 			}
-			Data.ImmutableSpan.CopyTo(buffer);
+			Data.AsSpan().CopyTo(buffer);
 			buffer = buffer.Slice(Data.Length);
-			Nonce.ImmutableSpan.CopyTo(buffer);
+			Nonce.AsSpan().CopyTo(buffer);
 		}
 
 		private Byte[] SignParentSignaturesAndData(Key key)
@@ -54,9 +54,9 @@ namespace NickStrupat
 		{
 			Span<byte> bytesForCrypto = stackalloc Byte[LengthOfCryptoBytes];
 			CopyBytesForCryptoTo(bytesForCrypto);
-			if (!NSec.Cryptography.PublicKey.TryImport(Algorithm, PublicKey.ImmutableSpan.Span, PublicKeyBlobFormat, out var publicKey))
+			if (!NSec.Cryptography.PublicKey.TryImport(Algorithm, PublicKey.AsSpan(), PublicKeyBlobFormat, out var publicKey))
 				return false;
-			return Algorithm.Verify(publicKey, bytesForCrypto, Signature.ImmutableSpan.Span);
+			return Algorithm.Verify(publicKey, bytesForCrypto, Signature.AsSpan());
 		}
 
 		public Boolean Verify() => VerifyParentSignaturesAndData();

@@ -13,13 +13,13 @@ namespace NickStrupat
 				return true;
 			if (x.Length != y.Length)
 				return false;
-			return x.ImmutableSpan.Span.SequenceEqual(y.ImmutableSpan.Span);
+			return x.AsSpan().SequenceEqual(y.AsSpan());
 		}
 
 		public int GetHashCode(ImmutableMemory<T> obj)
 		{
 			var hashCode = new HashCode();
-			foreach (var x in obj.ImmutableSpan)
+			foreach (var x in obj.AsSpan())
 				hashCode.Add(x);
 			return hashCode.ToHashCode();
 		}

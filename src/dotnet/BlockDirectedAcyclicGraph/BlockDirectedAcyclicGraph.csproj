@@ -7,11 +7,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="ImmutableMemory" Version="1.0.0-beta3" />
 		<PackageReference Include="NSec.Cryptography" Version="19.5.0" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\Immutable\Immutable.csproj" />
 	</ItemGroup>
 
 </Project>

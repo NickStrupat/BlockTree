@@ -7,11 +7,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="ImmutableMemory" Version="1.0.0-beta3" />
 		<PackageReference Include="System.Memory" Version="4.5.3" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\Immutable\Immutable.csproj" />
 	</ItemGroup>
 
 </Project>

@@ -14,12 +14,12 @@ namespace BlockDirectedAcyclicGraph_Tests
 		public void TestBlockIndex()
 		{
 			using var key = Key.Create(SignatureAlgorithm.Ed25519);
-			var blockDag = new BlockDirectedAcyclicGraph(Array.Empty<Byte>(), key);
+			var blockDag = new BlockDirectedAcyclicGraph(Array.Empty<Byte>().ToImmutableMemory(), key);
 			var verifiedBlocks = new List<Block>();
 			for (var i = 0; i != 3; i++)
 			{
 				Assert.True(
-					blockDag.TryAdd(blockDag.Root, Encoding.UTF8.GetBytes($"Hello #{i}"), key, out var newBlock)
+					blockDag.TryAdd(blockDag.Root, Encoding.UTF8.GetBytes($"Hello #{i}").ToImmutableMemory(), key, out var newBlock)
 				);
 				verifiedBlocks.Add(newBlock);
 			}
@@ -42,11 +42,11 @@ namespace BlockDirectedAcyclicGraph_Tests
 				var blockIndex = new BlockIndex();
 				for (var i = 0; i != 2; i++)
 				{
-					var blockTree = new BlockDirectedAcyclicGraph(Array.Empty<Byte>(), key);
+					var blockTree = new BlockDirectedAcyclicGraph(Array.Empty<Byte>().ToImmutableMemory(), key);
 					for (var j = 0; j != 3; j++)
 					{
 						Assert.True(
-							blockTree.TryAdd(blockTree.Root, Encoding.UTF8.GetBytes($"Hello #{j}"), key, out var newBlock)
+							blockTree.TryAdd(blockTree.Root, Encoding.UTF8.GetBytes($"Hello #{j}").ToImmutableMemory(), key, out var newBlock)
 						);
 						blockIndex.Add(newBlock);
 					}

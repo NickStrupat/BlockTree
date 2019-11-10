@@ -26,23 +26,23 @@ namespace NickStrupat
 				) &&
 				(
 					( // check if the spans are actually the exact same instance of span (e.g. comparing to itself)
-						x.PublicKey.ImmutableSpan == y.PublicKey.ImmutableSpan &&
-						x.ParentSignatures.ImmutableSpan == y.ParentSignatures.ImmutableSpan &&
-						x.Data.ImmutableSpan == y.Data.ImmutableSpan &&
-						x.Signature.ImmutableSpan == y.Signature.ImmutableSpan
+						x.PublicKey.AsSpan() == y.PublicKey.AsSpan() &&
+						x.ParentSignatures.AsSpan() == y.ParentSignatures.AsSpan() &&
+						x.Data.AsSpan() == y.Data.AsSpan() &&
+						x.Signature.AsSpan() == y.Signature.AsSpan()
 					) ||
 					( // actually compare the contents of the spans for equality
-						x.PublicKey.ImmutableSpan.Span.SequenceEqual(y.PublicKey.ImmutableSpan.Span) &&
-						x.ParentSignatures.ImmutableSpan.Span.SequenceEqual(y.ParentSignatures.ImmutableSpan.Span) &&
-						x.Data.ImmutableSpan.Span.SequenceEqual(y.Data.ImmutableSpan.Span) &&
-						x.Signature.ImmutableSpan.Span.SequenceEqual(y.Signature.ImmutableSpan.Span)
+						x.PublicKey.AsSpan().SequenceEqual(y.PublicKey.AsSpan()) &&
+						x.ParentSignatures.AsSpan().SequenceEqual(y.ParentSignatures.AsSpan()) &&
+						x.Data.AsSpan().SequenceEqual(y.Data.AsSpan()) &&
+						x.Signature.AsSpan().SequenceEqual(y.Signature.AsSpan())
 					)
 				);
 
 			public Int32 GetHashCode(Block block)
 			{
 				var hashCode = new HashCode();
-				foreach (var @byte in block.Signature.ImmutableSpan)
+				foreach (var @byte in block.Signature.AsSpan())
 					hashCode.Add(@byte);
 				return hashCode.ToHashCode();
 			}

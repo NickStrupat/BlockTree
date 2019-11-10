@@ -52,10 +52,10 @@ namespace NickStrupat
 		{
 			if (!parent.Verify() || !child.Verify())
 				return false;
-			var pss = parent.Signature.ImmutableSpan.Span;
+			var pss = parent.Signature.AsSpan();
 			foreach (var parentSignature in child.ParentSignaturesEnumerable)
 			{
-				var cpss = parentSignature.ImmutableSpan.Span;
+				var cpss = parentSignature.AsSpan();
 				if (cpss == pss || cpss.SequenceEqual(pss))
 					return true;
 			}

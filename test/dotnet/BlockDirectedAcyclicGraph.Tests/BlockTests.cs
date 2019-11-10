@@ -41,7 +41,7 @@ namespace BlockDirectedAcyclicGraph_Tests
 			var dataIm = new ImmutableMemory<Byte>(data);
 			var block = new Block(parentSignaturesIm, dataIm, key);
 			var block2 = new Block(parentSignaturesIm, dataIm, key);
-			Assert.False(block.Signature.ImmutableSpan.Span.SequenceEqual(block2.Signature.ImmutableSpan.Span));
+			Assert.False(block.Signature.AsSpan().SequenceEqual(block2.Signature.AsSpan()));
 		}
 
 		[Fact]
@@ -49,8 +49,8 @@ namespace BlockDirectedAcyclicGraph_Tests
 		{
 			var key = Key.Create(Block.Algorithm);
 
-			var requestBlock = new Block(ImmutableMemory<Byte>.Empty, Encoding.UTF8.GetBytes("request"), key);
-			var responeBlock = new Block(requestBlock.Signature, Encoding.UTF8.GetBytes("response"), key);
+			var requestBlock = new Block(ImmutableMemory<Byte>.Empty, Encoding.UTF8.GetBytes("request").ToImmutableMemory(), key);
+			var responeBlock = new Block(requestBlock.Signature, Encoding.UTF8.GetBytes("response").ToImmutableMemory(), key);
 
 			var reqBytes = ImmutableMemory<Byte>.Create(requestBlock.SerializationLength, requestBlock, (bytes, block) => block.Serialize(bytes));
 			var resBytes = ImmutableMemory<Byte>.Create(responeBlock.SerializationLength, requestBlock, (bytes, block) => block.Serialize(bytes));
@@ -78,7 +78,7 @@ namespace BlockDirectedAcyclicGraph_Tests
 			Span<Byte> bytes = stackalloc Byte[block.SerializationLength];
 			block.Serialize(bytes);
 
-			Assert.True(Block.TryDeserialize(bytes.ToArray(), out var block2));
+			Assert.True(Block.TryDeserialize(bytes.ToImmutableMemory(), out var block2));
 			Assert.True(block2.Verify());
 		}
 
@@ -88,18 +88,18 @@ namespace BlockDirectedAcyclicGraph_Tests
 			var key1 = Key.Create(Block.Algorithm);
 			var key2 = Key.Create(Block.Algorithm);
 
-			var genesisBlock = new Block(ImmutableMemory<Byte>.Empty, Encoding.UTF8.GetBytes("genesis"), key1);
-			var block = new Block(genesisBlock.Signature, Encoding.UTF8.GetBytes("request"), key2);
+			var genesisBlock = new Block(ImmutableMemory<Byte>.Empty, Encoding.UTF8.GetBytes("genesis").ToImmutableMemory(), key1);
+			var block = new Block(genesisBlock.Signature, Encoding.UTF8.GetBytes("request").ToImmutableMemory(), key2);
 
 			Span<Byte> bytes = stackalloc Byte[genesisBlock.SerializationLength];
 			Span<Byte> bytes2 = stackalloc Byte[block.SerializationLength];
 			genesisBlock.Serialize(bytes);
 			block.Serialize(bytes2);
 
-			Assert.True(Block.TryDeserialize(bytes.ToArray(), out var genesisBlock2));
+			Assert.True(Block.TryDeserialize(bytes.ToImmutableMemory(), out var genesisBlock2));
 			Assert.True(genesisBlock2.Verify());
 
-			Assert.True(Block.TryDeserialize(bytes2.ToArray(), out var block2));
+			Assert.True(Block.TryDeserialize(bytes2.ToImmutableMemory(), out var block2));
 			Assert.True(block2.Verify());
 
 		}
@@ -107,7 +107,7 @@ namespace BlockDirectedAcyclicGraph_Tests
 		[Fact]
 		public void MultiParentBlockIsVerified()
 		{
-			static ImmutableMemory<Byte> GetBytes(String s) => s.AsImmutableMemory(Encoding.UTF8);
+			static ImmutableMemory<Byte> GetBytes(String s) => Encoding.UTF8.GetBytes(s).ToImmutableMemory();
 
 			var key1 = Key.Create(Block.Algorithm);
 			var key2 = Key.Create(Block.Algorithm);
@@ -118,8 +118,8 @@ namespace BlockDirectedAcyclicGraph_Tests
 			var block3 = new Block(block2.Signature, GetBytes("response"), key1);
 
 			Span<Byte> parentSignatures = stackalloc Byte[Block.Algorithm.SignatureSize * 2];
-			block2.Signature.ImmutableSpan.CopyTo(parentSignatures);
-			block3.Signature.ImmutableSpan.CopyTo(parentSignatures.Slice(Block.Algorithm.SignatureSize));
+			block2.Signature.AsSpan().CopyTo(parentSignatures);
+			block3.Signature.AsSpan().CopyTo(parentSignatures.Slice(Block.Algorithm.SignatureSize));
 			var joinBlock = new Block(new ImmutableMemory<Byte>(parentSignatures), GetBytes("join"), key3);
 			Assert.True(joinBlock.Verify());
 

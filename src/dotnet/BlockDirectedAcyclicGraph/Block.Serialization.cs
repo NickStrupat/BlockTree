@@ -1,87 +1,75 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using NSec.Cryptography;
 
 namespace NickStrupat
 {
-	public readonly partial struct Block
+	public partial class Block
 	{
 		private Block(
-			UInt32 version,
-			SignatureAlgorithmCode signatureAlgorithmCode,
-			ImmutableMemory<Byte> publicKey,
-			ImmutableMemory<Byte> parentSignatures,
+			PublicKey publicKey,
+			ImmutableMemory<Signature> parentSignatures,
 			ImmutableMemory<Byte> data,
-			ImmutableMemory<Byte> nonce,
-			ImmutableMemory<Byte> signature
-		) : this()
+			Signature signature
+		)
 		{
-			Version = version;
-			SignatureAlgorithmCode = signatureAlgorithmCode;
+			PublicKey = publicKey;
 			ParentSignatures = parentSignatures;
 			Data = data;
-			Nonce = nonce;
 			Signature = signature;
-			PublicKey = publicKey;
 		}
 
-		private static readonly UInt32[] supportedVersions = new UInt32[] { 1 };
-
-		private static Boolean DeserializeInternal(ImmutableMemory<Byte> rawBlockBytes, out Block block, [NotNullWhen(false)] out Exception? exception)
+		private static Boolean DeserializeInternal(ImmutableMemory<Byte> rawBlockBytes, [NotNullWhen(true)] out Block? block, [NotNullWhen(false)] out Exception? exception)
 		{
 			block = default;
 			exception = default;
 
-			var version = checked((UInt32)rawBlockBytes.ReadInt32AndAdvance());
-			if (!supportedVersions.Contains(version))
-			{
-				exception = new InvalidVersionException(version);
-				return false;
-			}
-
-			var signatureAlgorithmCode = (SignatureAlgorithmCode)rawBlockBytes.ReadInt32AndAdvance();
-			if (!Enum.IsDefined(typeof(SignatureAlgorithmCode), signatureAlgorithmCode))
-			{
-				exception = new InvalidSignatureAlgorithmException(signatureAlgorithmCode);
-				return false;
-			}
-
+			// read public key
 			var publicKeyLength = rawBlockBytes.ReadInt32AndAdvance();
-			if (publicKeyLength != Algorithm.PublicKeySize)
+			if (publicKeyLength != SignatureAlgorithm.PublicKeySize)
 			{
 				exception = new InvalidPublicKeyLengthException(publicKeyLength);
 				return false;
 			}
-			var publicKey = rawBlockBytes.ReadBytesAndAdvance(publicKeyLength);
-
-			var parentSignaturesLength = rawBlockBytes.ReadInt32AndAdvance();
-			if (!IsParentSignaturesLengthValid(parentSignaturesLength))
+			var publicKeyBytes = rawBlockBytes.ReadBytesAndAdvance(publicKeyLength);
+			if (!PublicKey.TryImport(SignatureAlgorithm, publicKeyBytes.AsSpan(), PublicKeyBlobFormat, out var publicKey))
 			{
-				exception = new InvalidParentSignaturesLengthException(parentSignaturesLength);
+				// get the exception for the failing public key import
+				try
+				{
+					PublicKey.Import(SignatureAlgorithm, publicKeyBytes.AsSpan(), PublicKeyBlobFormat);
+				}
+				catch (Exception ex)
+				{
+					exception = new InvalidPublicKeyException(ex);
+				}
 				return false;
 			}
-			var parentSignatures = rawBlockBytes.ReadBytesAndAdvance(parentSignaturesLength);
 
+			// read parent signatures
+			var parentSignaturesCount = rawBlockBytes.ReadInt32AndAdvance();
+			var parentSignaturesBytesConsumedCount = 0;
+			var parentSignatures = ImmutableMemory<Signature>.Create(parentSignaturesCount, rawBlockBytes, (span, buffer) =>
+			{
+				for (var i = 0; i != span.Length; i++)
+				{
+					var signature = Signature.DeserializeFrom(buffer);
+					parentSignaturesBytesConsumedCount += signature.SerializationLength;
+					buffer = buffer.Slice(signature.SerializationLength);
+				}
+			});
+			rawBlockBytes = rawBlockBytes.Slice(parentSignaturesBytesConsumedCount);
+
+			// read data
 			var dataLength = rawBlockBytes.ReadInt32AndAdvance();
 			var data = rawBlockBytes.ReadBytesAndAdvance(dataLength);
 
-			var nonceLength = rawBlockBytes.ReadInt32AndAdvance();
-			if (nonceLength != NonceByteLength)
-			{
-				exception = new InvalidNonceLengthException(parentSignaturesLength);
-				return false;
-			}
-			var nonce = rawBlockBytes.ReadBytesAndAdvance(nonceLength);
+			// read signature
+			var signature = Signature.DeserializeFrom(rawBlockBytes);
 
-			var signatureLength = rawBlockBytes.ReadInt32AndAdvance();
-			if (signatureLength != Algorithm.SignatureSize)
-			{
-				exception = new InvalidSignatureLengthException(signatureLength);
-				return false;
-			}
-			var signature = rawBlockBytes.ReadBytesAndAdvance(signatureLength);
-
-			var unverifiedBlock = new Block(version, signatureAlgorithmCode, publicKey, parentSignatures, data, nonce, signature);
+			// create `Block` instance
+			var unverifiedBlock = new Block(publicKey, parentSignatures, data, signature);
 			if (!unverifiedBlock.VerifyParentSignaturesAndData())
 			{
 				exception = new BlockVerificationException(unverifiedBlock);
@@ -92,40 +80,30 @@ namespace NickStrupat
 			return true;
 		}
 
-		public static Boolean TryDeserialize(ImmutableMemory<Byte> rawBlockBytes, out Block block) =>
+		public static Boolean TryDeserialize(ImmutableMemory<Byte> rawBlockBytes, [NotNullWhen(true)] out Block? block) =>
 			DeserializeInternal(rawBlockBytes, out block, out _);
 
 		public static Block Deserialize(ImmutableMemory<Byte> rawBlockBytes) =>
 			DeserializeInternal(rawBlockBytes, out var block, out var exception) ? block : throw exception;
 
 		public Int32 SerializationLength =>
-			sizeof(Int32) +
-			sizeof(Int32) +
-			sizeof(Int32) + PublicKey.Length +
-			sizeof(Int32) + ParentSignatures.Length +
+			sizeof(Int32) + PublicKey.Size +
+			ParentSignatures.AsSpan().GetSerializationLength() +
 			sizeof(Int32) + Data.Length +
-			sizeof(Int32) + Nonce.Length +
-			sizeof(Int32) + Signature.Length;
+			Signature.SerializationLength;
 
 		public void Serialize(Span<Byte> destination)
 		{
-			destination.WriteInt32AndAdvance((Int32) Version);
-			destination.WriteInt32AndAdvance((Int32) SignatureAlgorithmCode);
+			var publicKeyBytes = PublicKey.Export(PublicKeyBlobFormat);
+			destination.WriteInt32AndAdvance(publicKeyBytes.Length);
+			destination.WriteBytesAndAdvance(publicKeyBytes.AsSpan());
 
-			destination.WriteInt32AndAdvance(PublicKey.Length);
-			destination.WriteBytesAndAdvance(PublicKey);
-
-			destination.WriteInt32AndAdvance(ParentSignatures.Length);
-			destination.WriteBytesAndAdvance(ParentSignatures);
+			ParentSignatures.AsSpan().SerializeToAndAdvance(ref destination);
 
 			destination.WriteInt32AndAdvance(Data.Length);
 			destination.WriteBytesAndAdvance(Data);
 
-			destination.WriteInt32AndAdvance(Nonce.Length);
-			destination.WriteBytesAndAdvance(Nonce);
-
-			destination.WriteInt32AndAdvance(Signature.Length);
-			destination.WriteBytesAndAdvance(Signature);
+			Signature.SerializeTo(destination);
 		}
 	}
 }

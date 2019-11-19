@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace NickStrupat
 {
-	public readonly partial struct Block : IEquatable<Block>
+	public partial class Block : IEquatable<Block>
 	{
 		public override Boolean Equals(Object obj) => obj is Block block && Equals(block);
 
@@ -18,34 +18,28 @@ namespace NickStrupat
 			private EqualityComparer() { }
 
 			public Boolean Equals(Block x, Block y) =>
-				( // check lengths first because that's fast and rules out any obvious mismatches
-					x.PublicKey.Length == y.PublicKey.Length &&
+				( // check scalars and lengths first because that's fast and rules out any obvious mismatches
 					x.ParentSignatures.Length == y.ParentSignatures.Length &&
 					x.Data.Length == y.Data.Length &&
-					x.Signature.Length == y.Signature.Length
+					x.Signature.SignatureAlgorithmCode == y.Signature.SignatureAlgorithmCode &&
+					x.Signature.Bytes.Length == y.Signature.Bytes.Length
 				) &&
 				(
-					( // check if the spans are actually the exact same instance of span (e.g. comparing to itself)
-						x.PublicKey.AsSpan() == y.PublicKey.AsSpan() &&
+					( // check if the members are actually the exact same instance (referential equality) (e.g. comparing to itself)
+						x.PublicKey == y.PublicKey &&
 						x.ParentSignatures.AsSpan() == y.ParentSignatures.AsSpan() &&
 						x.Data.AsSpan() == y.Data.AsSpan() &&
-						x.Signature.AsSpan() == y.Signature.AsSpan()
+						x.Signature == y.Signature
 					) ||
-					( // actually compare the contents of the spans for equality
-						x.PublicKey.AsSpan().SequenceEqual(y.PublicKey.AsSpan()) &&
+					( // actually compare the contents of the members for structural equality
+						x.PublicKey.Equals(y.PublicKey) &&
 						x.ParentSignatures.AsSpan().SequenceEqual(y.ParentSignatures.AsSpan()) &&
 						x.Data.AsSpan().SequenceEqual(y.Data.AsSpan()) &&
-						x.Signature.AsSpan().SequenceEqual(y.Signature.AsSpan())
+						x.Signature.Bytes.AsSpan().SequenceEqual(y.Signature.Bytes.AsSpan())
 					)
 				);
 
-			public Int32 GetHashCode(Block block)
-			{
-				var hashCode = new HashCode();
-				foreach (var @byte in block.Signature.AsSpan())
-					hashCode.Add(@byte);
-				return hashCode.ToHashCode();
-			}
+			public Int32 GetHashCode(Block block) => block.Signature.GetHashCode();
 		}
 	}
 }

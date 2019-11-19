@@ -5,6 +5,7 @@ namespace NickStrupat
 	public abstract class BlockException : Exception
 	{
 		internal BlockException() {}
+		internal BlockException(Exception innerException) : base(null, innerException) {}
 	}
 
 	public sealed class InvalidVersionException : BlockException
@@ -13,10 +14,10 @@ namespace NickStrupat
 		internal InvalidVersionException(UInt32 version) => Version = version;
 	}
 
-	public sealed class InvalidSignatureAlgorithmException : BlockException
+	public sealed class InvalidSignatureAlgorithmCodeException : BlockException
 	{
 		public SignatureAlgorithmCode SignatureAlgorithmCode { get; }
-		internal InvalidSignatureAlgorithmException(SignatureAlgorithmCode signatureAlgorithmCode) => SignatureAlgorithmCode = signatureAlgorithmCode;
+		internal InvalidSignatureAlgorithmCodeException(SignatureAlgorithmCode signatureAlgorithmCode) => SignatureAlgorithmCode = signatureAlgorithmCode;
 	}
 
 	public sealed class BlockVerificationException : BlockException
@@ -29,6 +30,11 @@ namespace NickStrupat
 	{
 		public Int32 PublicKeyLength { get; }
 		internal InvalidPublicKeyLengthException(Int32 publicKeyLength) => PublicKeyLength = publicKeyLength;
+	}
+
+	public sealed class InvalidPublicKeyException : BlockException
+	{
+		internal InvalidPublicKeyException(Exception innerException) : base(innerException) { }
 	}
 
 	public sealed class InvalidParentSignaturesLengthException : BlockException

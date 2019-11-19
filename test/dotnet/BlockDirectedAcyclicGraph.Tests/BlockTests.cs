@@ -1,6 +1,7 @@
 using NickStrupat;
 using NSec.Cryptography;
 using System;
+using System.Linq;
 using System.Text;
 using Xunit;
 
@@ -8,49 +9,31 @@ namespace BlockDirectedAcyclicGraph_Tests
 {
 	public class BlockTests
 	{
-		[Fact]
-		public void DefaultBlockIsNotVerified()
-		{
-			var block = new Block();
-			Assert.False(block.Verify());
+		//[Fact]
+		//public void DefaultBlockIsNotVerified()
+		//{
+		//	var block = new Block();
+		//	Assert.False(block.Verify());
 
-			block = default;
-			Assert.False(block.Verify());
-		}
+		//	block = default;
+		//	Assert.False(block.Verify());
+		//}
 
 		[Fact]
 		public void NewBlockIsVerified()
 		{
-			var key = Key.Create(Block.Algorithm);
-			var block = new Block(ImmutableMemory<Byte>.Empty, ImmutableMemory<Byte>.Empty, key);
+			var key = Key.Create(Block.SignatureAlgorithm);
+			var block = new Block(Enumerable.Empty<Block>(), ImmutableMemory<Byte>.Empty, key);
 			Assert.True(block.Verify());
-		}
-
-		[Theory]
-		[InlineData(new Byte[0], new Byte[0])]
-		[InlineData(
-			new Byte[64] {	23, 123, 4, 56, 76, 55, 99, 23, 64, 122, 98, 78, 76, 65, 54, 43,
-							23, 123, 4, 56, 76, 55, 99, 23, 64, 122, 98, 78, 76, 65, 54, 43,
-							23, 123, 4, 56, 76, 55, 99, 23, 64, 122, 98, 78, 76, 65, 54, 43,
-							23, 123, 4, 56, 76, 55, 99, 23, 64, 122, 98, 78, 76, 65, 54, 43 }, new Byte[] { 45, 32, 85, 74, 96, 12, 1, 54, 78 })]
-		public void IdenticalBlockCreationResultInDistinctSignaturesDueToNonce(Byte[] parentSignatures, Byte[] data)
-		{
-			var key = Key.Create(Block.Algorithm);
-
-			var parentSignaturesIm = new ImmutableMemory<Byte>(parentSignatures);
-			var dataIm = new ImmutableMemory<Byte>(data);
-			var block = new Block(parentSignaturesIm, dataIm, key);
-			var block2 = new Block(parentSignaturesIm, dataIm, key);
-			Assert.False(block.Signature.AsSpan().SequenceEqual(block2.Signature.AsSpan()));
 		}
 
 		[Fact]
 		public void SerializationRoundtripEquality()
 		{
-			var key = Key.Create(Block.Algorithm);
+			var key = Key.Create(Block.SignatureAlgorithm);
 
-			var requestBlock = new Block(ImmutableMemory<Byte>.Empty, Encoding.UTF8.GetBytes("request").ToImmutableMemory(), key);
-			var responeBlock = new Block(requestBlock.Signature, Encoding.UTF8.GetBytes("response").ToImmutableMemory(), key);
+			var requestBlock = new Block(Enumerable.Empty<Block>(), Encoding.UTF8.GetBytes("request").ToImmutableMemory(), key);
+			var responeBlock = new Block(requestBlock, Encoding.UTF8.GetBytes("response").ToImmutableMemory(), key);
 
 			var reqBytes = ImmutableMemory<Byte>.Create(requestBlock.SerializationLength, requestBlock, (bytes, block) => block.Serialize(bytes));
 			var resBytes = ImmutableMemory<Byte>.Create(responeBlock.SerializationLength, requestBlock, (bytes, block) => block.Serialize(bytes));
@@ -71,7 +54,7 @@ namespace BlockDirectedAcyclicGraph_Tests
 		[Fact]
 		public void VerifiedGenesisBlockSerializedThenDeserializedIsVerified()
 		{
-			var key = Key.Create(Block.Algorithm);
+			var key = Key.Create(Block.SignatureAlgorithm);
 			var block = new Block(ImmutableMemory<Byte>.Empty, ImmutableMemory<Byte>.Empty, key);
 			Assert.True(block.Verify());
 
@@ -85,8 +68,8 @@ namespace BlockDirectedAcyclicGraph_Tests
 		[Fact]
 		public void VerifiedBlockSerializedThenDeserializedIsVerified()
 		{
-			var key1 = Key.Create(Block.Algorithm);
-			var key2 = Key.Create(Block.Algorithm);
+			var key1 = Key.Create(Block.SignatureAlgorithm);
+			var key2 = Key.Create(Block.SignatureAlgorithm);
 
 			var genesisBlock = new Block(ImmutableMemory<Byte>.Empty, Encoding.UTF8.GetBytes("genesis").ToImmutableMemory(), key1);
 			var block = new Block(genesisBlock.Signature, Encoding.UTF8.GetBytes("request").ToImmutableMemory(), key2);
@@ -109,17 +92,17 @@ namespace BlockDirectedAcyclicGraph_Tests
 		{
 			static ImmutableMemory<Byte> GetBytes(String s) => Encoding.UTF8.GetBytes(s).ToImmutableMemory();
 
-			var key1 = Key.Create(Block.Algorithm);
-			var key2 = Key.Create(Block.Algorithm);
-			var key3 = Key.Create(Block.Algorithm);
+			var key1 = Key.Create(Block.SignatureAlgorithm);
+			var key2 = Key.Create(Block.SignatureAlgorithm);
+			var key3 = Key.Create(Block.SignatureAlgorithm);
 
 			var genesisBlock = new Block(ImmutableMemory<Byte>.Empty, GetBytes("genesis"), key1);
 			var block2 = new Block(genesisBlock.Signature, GetBytes("request"), key2);
 			var block3 = new Block(block2.Signature, GetBytes("response"), key1);
 
-			Span<Byte> parentSignatures = stackalloc Byte[Block.Algorithm.SignatureSize * 2];
+			Span<Byte> parentSignatures = stackalloc Byte[Block.SignatureAlgorithm.SignatureSize * 2];
 			block2.Signature.AsSpan().CopyTo(parentSignatures);
-			block3.Signature.AsSpan().CopyTo(parentSignatures.Slice(Block.Algorithm.SignatureSize));
+			block3.Signature.AsSpan().CopyTo(parentSignatures.Slice(Block.SignatureAlgorithm.SignatureSize));
 			var joinBlock = new Block(new ImmutableMemory<Byte>(parentSignatures), GetBytes("join"), key3);
 			Assert.True(joinBlock.Verify());
 

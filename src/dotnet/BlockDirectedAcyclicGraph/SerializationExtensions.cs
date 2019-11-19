@@ -22,6 +22,13 @@ namespace NickStrupat
 		public static void WriteBytesAndAdvance(ref this Span<Byte> buffer, ImmutableMemory<Byte> source) => buffer.WriteBytesAndAdvance(source.AsMemory());
 
 
+		public static Int32 ReadInt32AndAdvance(ref this ReadOnlySpan<Byte> buffer)
+		{
+			var length = BinaryPrimitives.ReadInt32BigEndian(buffer);
+			buffer = buffer.Slice(sizeof(Int32));
+			return length;
+		}
+
 		public static Int32 ReadInt32AndAdvance(ref this ImmutableSpan<Byte> buffer)
 		{
 			var length = BinaryPrimitives.ReadInt32BigEndian(buffer.AsSpan());
@@ -34,6 +41,13 @@ namespace NickStrupat
 			var length = BinaryPrimitives.ReadInt32BigEndian(buffer.AsSpan());
 			buffer = buffer.Slice(sizeof(Int32));
 			return length;
+		}
+
+		public static ReadOnlySpan<Byte> ReadBytesAndAdvance(ref this ReadOnlySpan<Byte> buffer, Int32 length)
+		{
+			var extracted = buffer.Slice(0, length);
+			buffer = buffer.Slice(length);
+			return extracted;
 		}
 
 		public static ImmutableSpan<Byte> ReadBytesAndAdvance(ref this ImmutableSpan<Byte> buffer, Int32 length)

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\dotnet\BlockDirectedAcyclicGraph\BlockDirectedAcyclicGraph.csproj" />
+  </ItemGroup>
+
+</Project>

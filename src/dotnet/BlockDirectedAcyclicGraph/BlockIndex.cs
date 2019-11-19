@@ -9,21 +9,18 @@ namespace NickStrupat
 	// no verification of block signatures nor chaining is done by the index
 	public sealed class BlockIndex
 	{
-		private readonly Dictionary<ImmutableMemory<Byte>, Block> blocksBySignature =
-			new Dictionary<ImmutableMemory<Byte>, Block>(ImmutableMemoryEqualityComparer<Byte>.Instance);
-
-		private readonly Dictionary<ImmutableMemory<Byte>, OrderedSet<Block>> childBlocksByParentSignature =
-			new Dictionary<ImmutableMemory<Byte>, OrderedSet<Block>>(ImmutableMemoryEqualityComparer<Byte>.Instance);
+		private readonly Dictionary<Signature, Block> blocksBySignature = new Dictionary<Signature, Block>();
+		private readonly Dictionary<Signature, OrderedSet<Block>> childBlocksByParentSignature = new Dictionary<Signature, OrderedSet<Block>>();
 
 		public Int32 Count => blocksBySignature.Count;
 
-		public Boolean Contains(ImmutableMemory<Byte> signature) =>
+		public Boolean Contains(Signature signature) =>
 			blocksBySignature.ContainsKey(signature);
 
-		public Boolean TryGetBySignature(ImmutableMemory<Byte> signature, out Block block) =>
+		public Boolean TryGetBySignature(Signature signature, out Block block) =>
 			blocksBySignature.TryGetValue(signature, out block);
 
-		public Boolean TryGetChildren(ImmutableMemory<Byte> signature, [NotNullWhen(true)] out IReadOnlyList<Block>? children)
+		public Boolean TryGetChildren(Signature signature, [NotNullWhen(true)] out IReadOnlyList<Block>? children)
 		{
 			if (childBlocksByParentSignature.TryGetValue(signature, out var values))
 			{
@@ -41,12 +38,12 @@ namespace NickStrupat
 				blocksBySignature.Add(block.Signature, block);
 
 				if (block.ParentSignatures.IsEmpty)
-					AddOrThrow(block.ParentSignatures, block);
+					AddOrThrow(default, block);
 				else
-					foreach (var parentSignature in block.ParentSignaturesEnumerable)
+					foreach (var parentSignature in block.ParentSignatures.AsImmutableSpan())
 						AddOrThrow(parentSignature, block);
 
-				void AddOrThrow(ImmutableMemory<Byte> parentSignature, Block block)
+				void AddOrThrow(Signature parentSignature, Block block)
 				{
 					if (!childBlocksByParentSignature.TryAddValue(parentSignature, block, Block.EqualityComparer.Default))
 						throw new ArgumentException("An element with the same key already exists in the set");
@@ -56,13 +53,13 @@ namespace NickStrupat
 			{
 				blocksBySignature.Remove(block.Signature);
 				if (block.ParentSignatures.IsEmpty)
-					RemoveIfExists(block.ParentSignatures, block);
+					RemoveIfExists(default, block);
 				else
-					foreach (var parentSignature in block.ParentSignaturesEnumerable)
+					foreach (var parentSignature in block.ParentSignatures.AsImmutableSpan())
 						RemoveIfExists(parentSignature, block);
 				throw;
 
-				void RemoveIfExists(ImmutableMemory<Byte> parentSignature, Block block)
+				void RemoveIfExists(Signature parentSignature, Block block)
 				{
 					if (childBlocksByParentSignature.TryGetValue(parentSignature, out var set))
 						if (set.Remove(block) && set.Count == 0)

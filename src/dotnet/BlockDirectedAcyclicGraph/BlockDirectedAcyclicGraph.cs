@@ -19,7 +19,7 @@ namespace NickStrupat
 				unverifiedBlockIndex.Add(unverifiedBlock);
 
 			// get the root node
-			Root = unverifiedBlockIndex.TryGetChildren(ImmutableMemory<Byte>.Empty, out var foundBlocks) ?
+			Root = unverifiedBlockIndex.TryGetChildren(default, out var foundBlocks) ?
 				foundBlocks.Single() :
 				throw new NoRootBlockException();
 
@@ -43,7 +43,7 @@ namespace NickStrupat
 
 		public BlockDirectedAcyclicGraph(ImmutableMemory<Byte> rootData, Key key)
 		{
-			Root = new Block(ImmutableMemory<Byte>.Empty, rootData, key);
+			Root = new Block(default, rootData, key);
 			blockIndex = new BlockIndex();
 			blockIndex.Add(Root);
 		}
@@ -52,13 +52,9 @@ namespace NickStrupat
 		{
 			if (!parent.Verify() || !child.Verify())
 				return false;
-			var pss = parent.Signature.AsSpan();
-			foreach (var parentSignature in child.ParentSignaturesEnumerable)
-			{
-				var cpss = parentSignature.AsSpan();
-				if (cpss == pss || cpss.SequenceEqual(pss))
+			foreach (var parentSignature in child.ParentSignatures.AsImmutableSpan())
+				if (parentSignature.Equals(parent.Signature))
 					return true;
-			}
 			return false;
 		}
 

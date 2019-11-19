@@ -1,73 +1,66 @@
 ﻿using NSec.Cryptography;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace NickStrupat
 {
-	public readonly partial struct Block
+	public partial class Block
 	{
-		public readonly UInt32 Version;
-		public readonly SignatureAlgorithmCode SignatureAlgorithmCode;
-		public readonly ImmutableMemory<Byte> PublicKey;
-		public readonly ImmutableMemory<Byte> ParentSignatures;
+		public readonly PublicKey PublicKey;
+		public readonly ImmutableMemory<Signature> ParentSignatures;
 		public readonly ImmutableMemory<Byte> Data;
-		public readonly ImmutableMemory<Byte> Nonce;
-		public readonly ImmutableMemory<Byte> Signature;
+		public readonly Signature Signature;
 
-		public SignaturesEnumerable ParentSignaturesEnumerable => new SignaturesEnumerable(ParentSignatures, Algorithm.SignatureSize);
-
-		public Block(ImmutableMemory<Byte> parentSignatures, ImmutableMemory<Byte> data, Key key) : this()
+		public Block(IEnumerable<Block> parentBlocks, ImmutableMemory<Byte> data, Key key)
 		{
-			Version = 1;
-			SignatureAlgorithmCode = SignatureAlgorithmCode.Ed25519;
-			if (!IsParentSignaturesLengthValid(parentSignatures.Length))
-				throw new InvalidParentSignaturesLengthException(parentSignatures.Length);
-			PublicKey = new ImmutableMemory<Byte>(key.PublicKey.Export(KeyBlobFormat.RawPublicKey));
-			ParentSignatures = parentSignatures;
+			PublicKey = key.PublicKey;
+			ParentSignatures = GetParentSignatures(parentBlocks);
 			Data = data;
-			Nonce = ImmutableMemory<Byte>.Create((Int32) NonceByteLength, 0, (span, _) => RandomGenerator.Default.GenerateBytes(span));
-			Signature = new ImmutableMemory<Byte>(SignParentSignaturesAndData(key));
+			Signature = new Signature(key, SignParentSignaturesAndData);
 		}
 
-		private Int32 LengthOfCryptoBytes => ParentSignatures.Length + Data.Length + checked((Int32) NonceByteLength);
+		private ImmutableMemory<Signature> GetParentSignatures(IEnumerable<Block> parentBlocks)
+		{
+			return ImmutableMemory<Signature>.Create(parentBlocks.Count(), parentBlocks, spanAction);
+			static void spanAction(Span<Signature> span, IEnumerable<Block> parentsBlocks)
+			{
+				var i = 0;
+				foreach (var parentBlock in parentsBlocks)
+					span[i] = parentBlock.Signature;
+			}
+		}
+
+		private Int32 LengthOfCryptoBytes => ParentSignatures.AsSpan().GetSerializationLength() + Data.Length);
 
 		private void CopyBytesForCryptoTo(Span<Byte> destination)
 		{
-			var buffer = destination;
-			foreach (var parentSignature in ParentSignaturesEnumerable)
+			foreach (var parentSignature in ParentSignatures.AsImmutableSpan())
 			{
-				parentSignature.AsSpan().CopyTo(buffer);
-				buffer = buffer.Slice(parentSignature.Length);
+				parentSignature.SerializeTo(destination);
+				destination = destination.Slice(parentSignature.SerializationLength);
 			}
-			Data.AsSpan().CopyTo(buffer);
-			buffer = buffer.Slice(Data.Length);
-			Nonce.AsSpan().CopyTo(buffer);
+			Data.AsSpan().CopyTo(destination);
 		}
 
-		private Byte[] SignParentSignaturesAndData(Key key)
+		private void SignParentSignaturesAndData(Span<Byte> signature, Key key)
 		{
 			Span<byte> bytesForCrypto = stackalloc Byte[LengthOfCryptoBytes];
 			CopyBytesForCryptoTo(bytesForCrypto);
-			return Algorithm.Sign(key, bytesForCrypto);
+			SignatureAlgorithm.Sign(key, bytesForCrypto, signature);
 		}
 
 		private Boolean VerifyParentSignaturesAndData()
 		{
 			Span<byte> bytesForCrypto = stackalloc Byte[LengthOfCryptoBytes];
 			CopyBytesForCryptoTo(bytesForCrypto);
-			if (!NSec.Cryptography.PublicKey.TryImport(Algorithm, PublicKey.AsSpan(), PublicKeyBlobFormat, out var publicKey))
-				return false;
-			return Algorithm.Verify(publicKey, bytesForCrypto, Signature.AsSpan());
+			return SignatureAlgorithm.Verify(PublicKey, bytesForCrypto, Signature.Bytes.AsSpan());
 		}
 
-		public Boolean Verify() => VerifyParentSignaturesAndData();
-
 		private static Boolean IsParentSignaturesLengthValid(Int32 parentSignaturesLength) =>
-			parentSignaturesLength % Algorithm.SignatureSize == 0;
+			parentSignaturesLength % (sizeof(Int32) + SignatureAlgorithm.SignatureSize) == 0;
 
-		public static readonly SignatureAlgorithm Algorithm = SignatureAlgorithm.Ed25519;
+		public static readonly SignatureAlgorithm SignatureAlgorithm = SignatureAlgorithm.Ed25519;
 		public static readonly KeyBlobFormat PublicKeyBlobFormat = KeyBlobFormat.RawPublicKey;
-		private const UInt32 NonceByteLength = 32;
 	}
-
-	public enum SignatureAlgorithmCode : UInt32 { Ed25519 = 0 }
 }

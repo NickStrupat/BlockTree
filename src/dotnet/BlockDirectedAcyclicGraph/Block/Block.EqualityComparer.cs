@@ -3,14 +3,8 @@ using System.Collections.Generic;
 
 namespace NickStrupat
 {
-	public partial class Block : IEquatable<Block>
+	public partial class Block
 	{
-		public override Boolean Equals(Object obj) => obj is Block block && Equals(block);
-
-		public Boolean Equals(Block other) => EqualityComparer.Default.Equals(this, other);
-
-		public override Int32 GetHashCode() => EqualityComparer.Default.GetHashCode(this);
-
 		public sealed class EqualityComparer : IEqualityComparer<Block>
 		{
 			public static readonly EqualityComparer Default = new EqualityComparer();
@@ -26,7 +20,6 @@ namespace NickStrupat
 				) &&
 				(
 					( // check if the members are actually the exact same instance (referential equality) (e.g. comparing to itself)
-						x.PublicKey == y.PublicKey &&
 						x.ParentSignatures.AsSpan() == y.ParentSignatures.AsSpan() &&
 						x.Data.AsSpan() == y.Data.AsSpan() &&
 						x.Signature == y.Signature

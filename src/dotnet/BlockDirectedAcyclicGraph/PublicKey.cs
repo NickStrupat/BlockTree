@@ -3,24 +3,24 @@ using System;
 
 namespace NickStrupat
 {
-	public readonly struct PublicKey
+	public readonly struct PublicKey : IEquatable<PublicKey>
 	{
 		public readonly SignatureAlgorithmCode SignatureAlgorithmCode;
 		public readonly ImmutableMemory<Byte> Bytes;
 
-		public PublicKey(Key key)
+		public PublicKey(NSec.Cryptography.PublicKey publicKey)
 		{
-			if (!(key.Algorithm is SignatureAlgorithm sa))
-				throw new InvalidAlgorithmException(key.Algorithm);
+			if (!(publicKey.Algorithm is SignatureAlgorithm sa))
+				throw new InvalidAlgorithmException(publicKey.Algorithm);
 			SignatureAlgorithmCode = sa.GetSignatureAlgorithm();
-			Bytes = key.PublicKey.Export(KeyBlobFormat.RawPublicKey).ToImmutableMemory();
+			Bytes = publicKey.Export(KeyBlobFormat.RawPublicKey).ToImmutableMemory();
 		}
 
-		private PublicKey(SignatureAlgorithmCode signatureAlgorithmCode, ImmutableMemory<Byte> bytes)
-		{
-			SignatureAlgorithmCode = signatureAlgorithmCode;
-			Bytes = bytes;
-		}
+		private PublicKey(SignatureAlgorithmCode signatureAlgorithmCode, ImmutableMemory<Byte> bytes) =>
+			(SignatureAlgorithmCode, Bytes) = (signatureAlgorithmCode, bytes);
+
+		public Boolean Verify(ReadOnlySpan<Byte> data, ReadOnlySpan<Byte> signature) =>
+			SignatureAlgorithmCode.Verify(Bytes.AsSpan(), data, signature);
 
 		public Int32 SerializationLength => sizeof(SignatureAlgorithmCode) + Bytes.Length;
 
@@ -40,6 +40,10 @@ namespace NickStrupat
 			return new PublicKey(signatureAlgorithmCode, signatureBytes);
 		}
 
-		public Boolean Verify(ReadOnlySpan<Byte> data, ReadOnlySpan<Byte> signature) => SignatureAlgorithmCode.Verify(Bytes.AsSpan(), data, signature);
+		public override Int32 GetHashCode() => ImmutableMemoryEqualityComparer<Byte>.Instance.GetHashCode(Bytes);
+		public override Boolean Equals(Object o) => o is PublicKey pk && Equals(pk);
+		public Boolean Equals(PublicKey other) =>
+			SignatureAlgorithmCode == other.SignatureAlgorithmCode &&
+			ImmutableMemoryEqualityComparer<Byte>.Instance.Equals(Bytes, other.Bytes);
 	}
 }

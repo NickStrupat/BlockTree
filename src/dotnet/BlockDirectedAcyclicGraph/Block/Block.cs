@@ -14,7 +14,7 @@ namespace NickStrupat
 
 		public Block(IEnumerable<Block> parentBlocks, ImmutableMemory<Byte> data, Key key)
 		{
-			PublicKey = key.PublicKey;
+			PublicKey = new PublicKey(key.PublicKey);
 			ParentSignatures = GetParentSignatures(parentBlocks);
 			Data = data;
 			Signature = new Signature(key, SignParentSignaturesAndData);
@@ -54,7 +54,7 @@ namespace NickStrupat
 		{
 			Span<byte> bytesForCrypto = stackalloc Byte[LengthOfCryptoBytes];
 			CopyBytesForCryptoTo(bytesForCrypto);
-			return SignatureAlgorithm.Verify(PublicKey, bytesForCrypto, Signature.Bytes.AsSpan());
+			return PublicKey.Verify(bytesForCrypto, Signature.Bytes.AsSpan());
 		}
 
 		private static Boolean IsParentSignaturesLengthValid(Int32 parentSignaturesLength) =>

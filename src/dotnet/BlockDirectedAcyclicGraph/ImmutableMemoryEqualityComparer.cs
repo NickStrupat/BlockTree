@@ -7,7 +7,7 @@ namespace NickStrupat
 	{
 		public static readonly ImmutableMemoryEqualityComparer<T> Instance = new ImmutableMemoryEqualityComparer<T>();
 
-		public bool Equals(ImmutableMemory<T> x, ImmutableMemory<T> y)
+		public Boolean Equals(ImmutableMemory<T> x, ImmutableMemory<T> y)
 		{
 			if (x.Equals(y)) // check if instances are the same
 				return true;
@@ -16,7 +16,7 @@ namespace NickStrupat
 			return x.AsSpan().SequenceEqual(y.AsSpan());
 		}
 
-		public int GetHashCode(ImmutableMemory<T> obj)
+		public Int32 GetHashCode(ImmutableMemory<T> obj)
 		{
 			var hashCode = new HashCode();
 			foreach (var x in obj.AsSpan())

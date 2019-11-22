@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using NSec.Cryptography;
 
 namespace NickStrupat
 {
@@ -26,26 +24,7 @@ namespace NickStrupat
 			exception = default;
 
 			// read public key
-			var publicKeyLength = rawBlockBytes.ReadInt32AndAdvance();
-			if (publicKeyLength != SignatureAlgorithm.PublicKeySize)
-			{
-				exception = new InvalidPublicKeyLengthException(publicKeyLength);
-				return false;
-			}
-			var publicKeyBytes = rawBlockBytes.ReadBytesAndAdvance(publicKeyLength);
-			if (!PublicKey.TryImport(SignatureAlgorithm, publicKeyBytes.AsSpan(), PublicKeyBlobFormat, out var publicKey))
-			{
-				// get the exception for the failing public key import
-				try
-				{
-					PublicKey.Import(SignatureAlgorithm, publicKeyBytes.AsSpan(), PublicKeyBlobFormat);
-				}
-				catch (Exception ex)
-				{
-					exception = new InvalidPublicKeyException(ex);
-				}
-				return false;
-			}
+			var publicKey = PublicKey.DeserializeFromAndAdvance(ref rawBlockBytes);
 
 			// read parent signatures
 			var parentSignaturesCount = rawBlockBytes.ReadInt32AndAdvance();
@@ -87,16 +66,14 @@ namespace NickStrupat
 			DeserializeInternal(rawBlockBytes, out var block, out var exception) ? block : throw exception;
 
 		public Int32 SerializationLength =>
-			sizeof(Int32) + PublicKey.Size +
+			PublicKey.SerializationLength +
 			ParentSignatures.AsSpan().GetSerializationLength() +
 			sizeof(Int32) + Data.Length +
 			Signature.SerializationLength;
 
 		public void Serialize(Span<Byte> destination)
 		{
-			var publicKeyBytes = PublicKey.Export(PublicKeyBlobFormat);
-			destination.WriteInt32AndAdvance(publicKeyBytes.Length);
-			destination.WriteBytesAndAdvance(publicKeyBytes.AsSpan());
+			PublicKey.SerializeToAndAdvance(ref destination);
 
 			ParentSignatures.AsSpan().SerializeToAndAdvance(ref destination);
 

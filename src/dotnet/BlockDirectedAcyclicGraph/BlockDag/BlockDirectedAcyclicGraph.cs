@@ -2,13 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 
 namespace NickStrupat
 {
 	public sealed class BlockDirectedAcyclicGraph
 	{
-		public Block Root { get; }
 		private readonly BlockIndex blockIndex = new BlockIndex();
 
 		public BlockDirectedAcyclicGraph(IEnumerable<Block> unverifiedBlocks)
@@ -18,54 +16,41 @@ namespace NickStrupat
 			foreach (var unverifiedBlock in unverifiedBlocks)
 				unverifiedBlockIndex.Add(unverifiedBlock);
 
-			// get the root node
-			Root = unverifiedBlockIndex.TryGetChildren(default, out var foundBlocks) ?
-				foundBlocks.Single() :
+			// verify the blocks and build a tree, starting from each root
+			if (!blockIndex.TryGetChildren(default, out var roots))
 				throw new NoRootBlockException();
 
-			// verify the blocks and build a tree
-			var queue = new Queue<Block>(unverifiedBlockIndex.Count / 2);
-			queue.Enqueue(Root);
-			while (queue.Count != 0)
+			foreach (var root in roots)
 			{
-				var current = queue.Dequeue();
-				if (!unverifiedBlockIndex.TryGetChildren(current.Signature, out var children))
-					continue;
-				foreach (var child in children)
-					if (Verify(current, child))
-						queue.Enqueue(child);
-					else
-						throw new InvalidBlocksException(current, child);
+				var queue = new Queue<Block>(unverifiedBlockIndex.Count / 2);
+				queue.Enqueue(root);
+				while (queue.Count != 0)
+				{
+					var current = queue.Dequeue();
+					if (!unverifiedBlockIndex.TryGetChildren(current.Signature, out var children))
+						continue;
+					foreach (var child in children)
+						if (IsParentOfChild(current, child))
+							queue.Enqueue(child);
+						else
+							throw new InvalidBlocksException(current, child);
+				}
 			}
 
 			blockIndex = unverifiedBlockIndex; // now verified
 		}
 
-		public BlockDirectedAcyclicGraph(ImmutableMemory<Byte> rootData, Key key)
-		{
-			Root = new Block(default, rootData, key);
-			blockIndex = new BlockIndex();
-			blockIndex.Add(Root);
-		}
+		private static Boolean IsParentOfChild(Block parent, Block child) =>
+			child.ParentSignatures.AsSpan().IndexOf(parent.Signature) != -1;
 
-		private static Boolean Verify(Block parent, Block child)
-		{
-			if (!parent.Verify() || !child.Verify())
-				return false;
-			foreach (var parentSignature in child.ParentSignatures.AsImmutableSpan())
-				if (parentSignature.Equals(parent.Signature))
-					return true;
-			return false;
-		}
-
-		public Boolean TryAdd(in Block parent, ImmutableMemory<Byte> data, Key key, out Block child)
+		public Boolean TryAdd(in Block parent, ImmutableMemory<Byte> data, Key key, [NotNullWhen(true)] out Block? child)
 		{
 			child = default;
 			if (!blockIndex.TryGetBySignature(parent.Signature, out var foundParent))
 				return false;
 			if (!parent.Equals(foundParent))
 				return false;
-			var childBlock = new Block(parent.Signature, data, key);
+			var childBlock = new Block(parent, data, key);
 			blockIndex.Add(childBlock);
 			child = childBlock;
 			return true;
@@ -77,7 +62,7 @@ namespace NickStrupat
 				throw new BlockNotFound(parent);
 			if (!parent.Equals(foundParent))
 				throw new SignatureCollisionException(parent, foundParent);
-			var childBlock = new Block(parent.Signature, data, key);
+			var childBlock = new Block(parent, data, key);
 			blockIndex.Add(childBlock);
 			return childBlock;
 		}

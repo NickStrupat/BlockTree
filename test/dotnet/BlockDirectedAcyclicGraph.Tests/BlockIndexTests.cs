@@ -14,7 +14,8 @@ namespace BlockDirectedAcyclicGraph_Tests
 		public void TestBlockIndex()
 		{
 			using var key = Key.Create(SignatureAlgorithm.Ed25519);
-			var blockDag = new BlockDirectedAcyclicGraph(Array.Empty<Byte>().ToImmutableMemory(), key);
+			var blockDag = new BlockDirectedAcyclicGraph(Array.Empty<Block>());
+			blockDag.Add()
 			var verifiedBlocks = new List<Block>();
 			for (var i = 0; i != 3; i++)
 			{

@@ -12,6 +12,22 @@ namespace NickStrupat
 		public readonly ImmutableMemory<Byte> Data;
 		public readonly Signature Signature;
 
+		public Block(ImmutableMemory<Byte> data, Key key)
+		{
+			PublicKey = new PublicKey(key.PublicKey);
+			ParentSignatures = ImmutableMemory<Signature>.Empty;
+			Data = data;
+			Signature = new Signature(key, SignParentSignaturesAndData);
+		}
+
+		public Block(Block parentBlock, ImmutableMemory<Byte> data, Key key)
+		{
+			PublicKey = new PublicKey(key.PublicKey);
+			ParentSignatures = ImmutableMemory<Signature>.Create(1, parentBlock, (span, pb) => span[0] = pb.Signature);
+			Data = data;
+			Signature = new Signature(key, SignParentSignaturesAndData);
+		}
+
 		public Block(IEnumerable<Block> parentBlocks, ImmutableMemory<Byte> data, Key key)
 		{
 			PublicKey = new PublicKey(key.PublicKey);
@@ -31,9 +47,9 @@ namespace NickStrupat
 			}
 		}
 
-		private Int32 LengthOfCryptoBytes => ParentSignatures.AsSpan().GetSerializationLength() + Data.Length);
+		private Int32 LengthOfCryptoBytes => ParentSignatures.AsSpan().GetSerializationLength() + Data.Length;
 
-		private void CopyBytesForCryptoTo(Span<Byte> destination)
+		private void CopyBytesForSigningTo(Span<Byte> destination)
 		{
 			foreach (var parentSignature in ParentSignatures.AsImmutableSpan())
 			{
@@ -46,14 +62,14 @@ namespace NickStrupat
 		private void SignParentSignaturesAndData(Span<Byte> signature, Key key)
 		{
 			Span<byte> bytesForCrypto = stackalloc Byte[LengthOfCryptoBytes];
-			CopyBytesForCryptoTo(bytesForCrypto);
+			CopyBytesForSigningTo(bytesForCrypto);
 			SignatureAlgorithm.Sign(key, bytesForCrypto, signature);
 		}
 
 		private Boolean VerifyParentSignaturesAndData()
 		{
 			Span<byte> bytesForCrypto = stackalloc Byte[LengthOfCryptoBytes];
-			CopyBytesForCryptoTo(bytesForCrypto);
+			CopyBytesForSigningTo(bytesForCrypto);
 			return PublicKey.Verify(bytesForCrypto, Signature.Bytes.AsSpan());
 		}
 

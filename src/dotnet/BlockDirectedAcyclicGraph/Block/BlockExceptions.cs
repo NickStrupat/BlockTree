@@ -28,8 +28,10 @@ namespace NickStrupat
 
 	public sealed class InvalidPublicKeyLengthException : BlockException
 	{
-		public Int32 PublicKeyLength { get; }
-		internal InvalidPublicKeyLengthException(Int32 publicKeyLength) => PublicKeyLength = publicKeyLength;
+		public Int32 ExpectedPublicKeyLength { get; }
+		public Int32 ActualPublicKeyLength { get; }
+		internal InvalidPublicKeyLengthException(Int32 expectedPublicKeyLength, Int32 actualPublicKeyLength) =>
+			(ExpectedPublicKeyLength, ActualPublicKeyLength) = (expectedPublicKeyLength, actualPublicKeyLength);
 	}
 
 	public sealed class InvalidPublicKeyException : BlockException
@@ -45,8 +47,10 @@ namespace NickStrupat
 
 	public sealed class InvalidSignatureLengthException : BlockException
 	{
-		public Int32 SignatureLength { get; }
-		internal InvalidSignatureLengthException(Int32 signatureLength) => SignatureLength = signatureLength;
+		public Int32 ExpectedSignatureLength { get; }
+		public Int32 ActualSignatureLength { get; }
+		internal InvalidSignatureLengthException(Int32 expectedSignatureLength, Int32 actualSignatureLength) =>
+			(ExpectedSignatureLength, ActualSignatureLength) = (expectedSignatureLength, actualSignatureLength);
 	}
 
 	public sealed class InvalidNonceLengthException : BlockException

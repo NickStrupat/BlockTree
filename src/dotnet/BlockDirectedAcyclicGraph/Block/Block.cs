@@ -51,6 +51,7 @@ namespace NickStrupat
 
 		private void CopyBytesForSigningTo(Span<Byte> destination)
 		{
+			destination.WriteInt32AndAdvance(ParentSignatures.Length);
 			foreach (var parentSignature in ParentSignatures.AsImmutableSpan())
 			{
 				parentSignature.SerializeTo(destination);

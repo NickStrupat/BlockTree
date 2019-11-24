@@ -67,6 +67,11 @@ namespace NickStrupat
 			return childBlock;
 		}
 
+		public void Add(Block block)
+		{
+			blockIndex.Add(block);
+		}
+
 		public IEnumerable<Block> GetAllBlocks() => blockIndex.GetAllBlocks();
 	}
 }

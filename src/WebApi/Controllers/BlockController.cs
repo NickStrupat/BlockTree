@@ -41,6 +41,8 @@ namespace WebApi.Controllers
 		{
 			var im = ImmutableMemory<Byte>.Create((Int32) Request.Body.Length, Request.Body, (span, body) => body.Read(span));
 			var block = Block.Deserialize(im);
+			blockDag.Add(block);
+			return Ok();
 		}
 	}
 }

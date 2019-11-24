@@ -36,6 +36,7 @@ namespace NickStrupat
 					var signature = Signature.DeserializeFrom(buffer);
 					parentSignaturesBytesConsumedCount += signature.SerializationLength;
 					buffer = buffer.Slice(signature.SerializationLength);
+					span[i] = signature;
 				}
 			});
 			rawBlockBytes = rawBlockBytes.Slice(parentSignaturesBytesConsumedCount);
@@ -46,6 +47,7 @@ namespace NickStrupat
 
 			// read signature
 			var signature = Signature.DeserializeFrom(rawBlockBytes);
+			rawBlockBytes = rawBlockBytes.Slice(signature.SerializationLength);
 
 			// create `Block` instance
 			var unverifiedBlock = new Block(publicKey, parentSignatures, data, signature);

@@ -23,21 +23,28 @@ namespace NickStrupat
 			Bytes = bytes;
 		}
 
-		public Int32 SerializationLength => sizeof(SignatureAlgorithmCode) + Bytes.Length;
+		public Int32 SerializationLength =>
+			sizeof(SignatureAlgorithmCode) +
+			sizeof(Int32) +
+			Bytes.Length;
 
 		public void SerializeTo(Span<Byte> destination) => SerializeToAndAdvance(ref destination);
 
 		public void SerializeToAndAdvance(ref Span<Byte> destination)
 		{
-			destination.WriteInt32AndAdvance((Int32)SignatureAlgorithmCode);
+			destination.WriteEnumAndAdvance(SignatureAlgorithmCode);
+			destination.WriteInt32AndAdvance(Bytes.Length);
 			destination.WriteBytesAndAdvance(Bytes);
 		}
 
 		public static Signature DeserializeFrom(ImmutableMemory<Byte> source)
 		{
-			var signatureAlgorithmCode = (SignatureAlgorithmCode)source.ReadInt32AndAdvance();
+			var signatureAlgorithmCode = source.ReadEnumAndAdvance<SignatureAlgorithmCode>();
 			var signatureAlgorithm = signatureAlgorithmCode.GetSignatureAlgorithm();
-			var signatureBytes = source.ReadBytesAndAdvance(signatureAlgorithm.SignatureSize);
+			var signatureLength = source.ReadInt32AndAdvance();
+			if (signatureLength != signatureAlgorithm.SignatureSize)
+				throw new InvalidPublicKeyLengthException(signatureAlgorithm.SignatureSize, signatureLength);
+			var signatureBytes = source.ReadBytesAndAdvance(signatureLength);
 			return new Signature(signatureAlgorithmCode, signatureBytes);
 		}
 

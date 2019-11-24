@@ -43,7 +43,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SerializationTesting", "tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApi", "src\WebApi\WebApi.csproj", "{D9F413B1-2B65-4B35-9988-A9786CFA4A86}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApi.Testing", "test\dotnet\WebApi.Testing\WebApi.Testing.csproj", "{327753D9-487B-4F8A-8764-621949C19DBD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApi.Testing", "test\dotnet\WebApi.Testing\WebApi.Testing.csproj", "{327753D9-487B-4F8A-8764-621949C19DBD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5F964037-09C3-43D5-AEC8-916131C81D2C}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

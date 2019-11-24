@@ -22,21 +22,28 @@ namespace NickStrupat
 		public Boolean Verify(ReadOnlySpan<Byte> data, ReadOnlySpan<Byte> signature) =>
 			SignatureAlgorithmCode.Verify(Bytes.AsSpan(), data, signature);
 
-		public Int32 SerializationLength => sizeof(SignatureAlgorithmCode) + Bytes.Length;
+		public Int32 SerializationLength =>
+			sizeof(SignatureAlgorithmCode) +
+			sizeof(Int32) +
+			Bytes.Length;
 
 		public void SerializeTo(Span<Byte> destination) => SerializeToAndAdvance(ref destination);
 		public void SerializeToAndAdvance(ref Span<Byte> destination)
 		{
-			destination.WriteInt32AndAdvance((Int32)SignatureAlgorithmCode);
+			destination.WriteEnumAndAdvance(SignatureAlgorithmCode);
+			destination.WriteInt32AndAdvance(Bytes.Length);
 			destination.WriteBytesAndAdvance(Bytes);
 		}
 
 		public static PublicKey DeserializeFrom(ImmutableMemory<Byte> source) => DeserializeFromAndAdvance(ref source);
 		public static PublicKey DeserializeFromAndAdvance(ref ImmutableMemory<Byte> source)
 		{
-			var signatureAlgorithmCode = (SignatureAlgorithmCode)source.ReadInt32AndAdvance();
+			var signatureAlgorithmCode = (SignatureAlgorithmCode)source.ReadByteAndAdvance();
 			var signatureAlgorithm = signatureAlgorithmCode.GetSignatureAlgorithm();
-			var signatureBytes = source.ReadBytesAndAdvance(signatureAlgorithm.SignatureSize);
+			var publicKeyLength = source.ReadInt32AndAdvance();
+			if (publicKeyLength != signatureAlgorithm.PublicKeySize)
+				throw new InvalidPublicKeyLengthException(signatureAlgorithm.PublicKeySize, publicKeyLength);
+			var signatureBytes = source.ReadBytesAndAdvance(publicKeyLength);
 			return new PublicKey(signatureAlgorithmCode, signatureBytes);
 		}
 

@@ -16,8 +16,11 @@ namespace NickStrupat
 			foreach (var unverifiedBlock in unverifiedBlocks)
 				unverifiedBlockIndex.Add(unverifiedBlock);
 
+			if (unverifiedBlockIndex.Count == 0)
+				return;
+
 			// verify the blocks and build a tree, starting from each root
-			if (!blockIndex.TryGetChildren(default, out var roots))
+			if (!unverifiedBlockIndex.TryGetChildren(default, out var roots))
 				throw new NoRootBlockException();
 
 			foreach (var root in roots)

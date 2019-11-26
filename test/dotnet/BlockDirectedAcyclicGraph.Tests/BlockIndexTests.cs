@@ -47,7 +47,7 @@ namespace BlockDirectedAcyclicGraph_Tests
 				blockIndex.Add(root);
 				for (var i = 0; i != 2; i++)
 				{
-					var blockTree = new BlockDirectedAcyclicGraph(Enumerable.Empty<Block>());
+					var blockTree = new BlockDirectedAcyclicGraph(blockIndex.GetAllBlocks());
 					for (var j = 0; j != 3; j++)
 					{
 						Assert.True(
